@@ -1,0 +1,8 @@
+package com.tssconsultancy.url_sortner_app.enums;
+
+public enum PaymentStatus {
+    PENDING,
+    SUCCESS,
+    FAILED
+
+}
