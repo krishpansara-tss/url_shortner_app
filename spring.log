@@ -379,3 +379,61 @@ This generated password is for development use only. Your security configuration
 2026-08-10T14:12:19.892+05:30  INFO 12968 --- [url_sortner_app] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
 2026-08-10T14:12:19.974+05:30  INFO 12968 --- [url_sortner_app] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
 2026-08-10T14:12:19.984+05:30  INFO 12968 --- [url_sortner_app] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-08-10T14:50:35.577+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] c.t.u.UrlSortnerAppApplication           : Starting UrlSortnerAppApplication using Java 18.0.2.1 with PID 6656 (C:\hardik_kashiyani\url_shortner_app\target\classes started by Hardik.Kashiyani in C:\hardik_kashiyani\url_shortner_app)
+2026-08-10T14:50:35.590+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] c.t.u.UrlSortnerAppApplication           : The following 1 profile is active: "dev"
+2026-08-10T14:50:35.745+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-08-10T14:50:35.747+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-08-10T14:50:38.168+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-10T14:50:38.487+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 290 ms. Found 6 JPA repository interfaces.
+2026-08-10T14:50:40.288+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-08-10T14:50:40.333+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-10T14:50:40.334+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.22]
+2026-08-10T14:50:40.629+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 4879 ms
+2026-08-10T14:50:41.153+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-08-10T14:50:41.442+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.1.Final
+2026-08-10T14:50:43.620+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-08-10T14:50:43.859+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-10T14:50:44.828+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@2009a616
+2026-08-10T14:50:44.832+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-10T14:50:45.080+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:5432/url_shortner_db]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 18.4
+	Default catalog/schema: url_shortner_db/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-08-10T14:50:49.467+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-08-10T14:50:50.372+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : HHH000247: ErrorCode: 0, SQLState: 00000
+2026-08-10T14:50:50.373+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : constraint "ukj419v4rp36vjqcan3iw2ar9o1" of relation "blacklisted_token" does not exist, skipping
+2026-08-10T14:50:50.399+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : HHH000247: ErrorCode: 0, SQLState: 00000
+2026-08-10T14:50:50.405+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : constraint "ukcp7muvxpq74xegstf0ugoec9t" of relation "rate_limit_config" does not exist, skipping
+2026-08-10T14:50:50.451+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : HHH000247: ErrorCode: 0, SQLState: 00000
+2026-08-10T14:50:50.453+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : constraint "ukpk5mof051xp5r3e75s2e23s8s" of relation "system_configs" does not exist, skipping
+2026-08-10T14:50:50.489+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : HHH000247: ErrorCode: 0, SQLState: 00000
+2026-08-10T14:50:50.490+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : constraint "ukrnk84agdloixrdnemjforvpp0" of relation "urls" does not exist, skipping
+2026-08-10T14:50:50.525+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : HHH000247: ErrorCode: 0, SQLState: 00000
+2026-08-10T14:50:50.528+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : constraint "uk6dotkott2kjsp8vw4d0m25fb7" of relation "users" does not exist, skipping
+2026-08-10T14:50:50.561+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : HHH000247: ErrorCode: 0, SQLState: 00000
+2026-08-10T14:50:50.563+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] org.hibernate.orm.jdbc.warn              : constraint "ukm2mlsd50ok26vswfdl7440tbd" of relation "verification_tokens" does not exist, skipping
+2026-08-10T14:50:50.665+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-10T14:50:50.860+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-08-10T14:50:51.730+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-08-10T14:50:52.396+05:30  WARN 6656 --- [url_sortner_app] [restartedMain] .s.a.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 47a44577-c41e-4d30-a7c9-f3aa0f97284d
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-08-10T14:50:52.565+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-08-10T14:50:53.094+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-08-10T14:50:53.103+05:30  INFO 6656 --- [url_sortner_app] [restartedMain] c.t.u.UrlSortnerAppApplication           : Started UrlSortnerAppApplication in 19.417 seconds (process running for 22.537)
+2026-08-10T14:58:40.234+05:30  INFO 6656 --- [url_sortner_app] [SpringApplicationShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-08-10T14:58:40.893+05:30  INFO 6656 --- [url_sortner_app] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-08-10T14:58:40.915+05:30  INFO 6656 --- [url_sortner_app] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-08-10T14:58:40.925+05:30  INFO 6656 --- [url_sortner_app] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-08-10T14:58:40.931+05:30  INFO 6656 --- [url_sortner_app] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
