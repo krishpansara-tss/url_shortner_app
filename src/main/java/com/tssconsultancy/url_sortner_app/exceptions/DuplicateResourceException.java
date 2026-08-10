@@ -1,0 +1,7 @@
+package com.tssconsultancy.url_sortner_app.exceptions;
+
+public class DuplicateResourceException extends RuntimeException {
+    public DuplicateResourceException(String message) {
+        super(message);
+    }
+}
