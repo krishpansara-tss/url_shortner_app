@@ -79,7 +79,6 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Backward compatibility for original field naming
     public boolean isVarified() {
         return isVerified;
     }
