@@ -8,5 +8,4 @@ import lombok.RequiredArgsConstructor;
 public class UrlRequestDto {
     private String longUrl;
     private String customAlias;
-    private Long userId;
 }
