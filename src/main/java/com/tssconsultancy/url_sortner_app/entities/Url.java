@@ -43,11 +43,6 @@ public class Url {
     @OneToMany(mappedBy = "url", cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private List<Media> mediaList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "url", cascade = CascadeType.ALL)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private List<Payment> payments = new ArrayList<>();
 
     private LocalDateTime createdAt;

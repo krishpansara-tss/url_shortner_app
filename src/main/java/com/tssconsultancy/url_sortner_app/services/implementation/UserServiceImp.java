@@ -19,10 +19,12 @@ import com.tssconsultancy.url_sortner_app.repositories.UrlRepository;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IUserService;
 import com.tssconsultancy.url_sortner_app.services.interfaces.UserVerificationService;
+import com.tssconsultancy.url_sortner_app.services.ImageUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -34,6 +36,7 @@ public class UserServiceImp implements IUserService {
     private final UrlRepository urlRepository;
     private final UserMapper userMapper;
     private final UserVerificationService userVerificationService;
+    private final ImageUploadService imageUploadService;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
@@ -194,5 +197,40 @@ public class UserServiceImp implements IUserService {
             throw new ResourceNotFoundException("User not found with id " + userId);
         }
         return user;
+    }
+
+    // ========== PROFILE PICTURE ENDPOINTS ==========
+
+    @Override
+    public String uploadProfilePicture(Long userId, MultipartFile file) {
+        User user = findActiveUserById(userId);
+        String imageUrl = imageUploadService.uploadToCloudinary(file, "profile_pictures");
+        user.setProfilePicturePath(imageUrl);
+        userRepository.save(user);
+        return imageUrl;
+    }
+
+    @Override
+    public String getProfilePicture(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+        
+        if (user.getProfilePicturePath() == null || user.getProfilePicturePath().isEmpty()) {
+            throw new ResourceNotFoundException("Profile picture not found for user: " + userId);
+        }
+        return user.getProfilePicturePath();
+    }
+
+    @Override
+    public void deleteProfilePicture(Long userId) {
+        User user = findActiveUserById(userId);
+        
+        if (user.getProfilePicturePath() == null || user.getProfilePicturePath().isEmpty()) {
+            throw new ResourceNotFoundException("Profile picture not found for user: " + userId);
+        }
+        
+        imageUploadService.deleteFromCloudinary(user.getProfilePicturePath());
+        user.setProfilePicturePath(null);
+        userRepository.save(user);
     }
 }
