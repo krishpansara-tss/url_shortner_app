@@ -3,7 +3,7 @@ package com.tssconsultancy.url_sortner_app.contollers.v1;
 import com.tssconsultancy.url_sortner_app.dtos.auth.*;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserResponseDto;
-import com.tssconsultancy.url_sortner_app.exceptions.InvalidRequestException;
+import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -90,7 +90,7 @@ public class  AuthController {
 
     private Long requireUserId(Long userIdHeader) {
         if (userIdHeader == null) {
-            throw new InvalidRequestException("Missing required header 'X-User-Id'. Please pass 'X-User-Id: <id>' in Postman headers.");
+            throw new InvalidOperationException("Missing required header 'X-User-Id'. Please pass 'X-User-Id: <id>' in Postman headers.");
         }
         return userIdHeader;
     }

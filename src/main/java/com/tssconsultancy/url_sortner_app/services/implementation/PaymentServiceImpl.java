@@ -51,13 +51,12 @@ public class PaymentServiceImpl implements IPaymentService {
 
         Double amount = getPriceForFeature(paymentType);
 
-        Payment payment = Payment.builder()
-                .user(user)
-                .url(url)
-                .amount(amount)
-                .paymentType(paymentType)
-                .paymentStatus(PaymentStatus.PENDING)
-                .build();
+        Payment payment = new Payment();
+        payment.setPaymentType(paymentType);
+        payment.setUrl(url);
+        payment.setUser(user);
+        payment.setAmount(amount);
+        payment.setPaymentStatus(PaymentStatus.PENDING);
 
         Payment paymentObj = paymentRepository.save(payment);
 

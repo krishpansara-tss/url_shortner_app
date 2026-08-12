@@ -7,7 +7,7 @@ import com.tssconsultancy.url_sortner_app.dtos.users.UserResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserUpdateRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserUsageResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserVerificationRequestDto;
-import com.tssconsultancy.url_sortner_app.exceptions.InvalidRequestException;
+import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -101,7 +101,7 @@ public class UserController {
 
     private Long requireUserId(Long userIdHeader) {
         if (userIdHeader == null) {
-            throw new InvalidRequestException("Missing required header 'X-User-Id'. Please pass 'X-User-Id: <id>' in Postman headers.");
+            throw new InvalidOperationException("Missing required header 'X-User-Id'. Please pass 'X-User-Id: <id>' in Postman headers.");
         }
         return userIdHeader;
     }
