@@ -12,4 +12,6 @@ public interface IUserService {
     UserResponseDto getUserById(Long id);
     UserResponseDto updateUser(Long id, UserUpdateRequestDto updateRequestDto);
     void deleteUser(Long id);
+    void verifyUserEmail(Long userId, String otpCode);
+    void resendEmailVerificationOtp(Long userId);
 }

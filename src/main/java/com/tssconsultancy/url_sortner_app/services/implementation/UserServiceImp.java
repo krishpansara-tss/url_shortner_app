@@ -11,13 +11,13 @@ import com.tssconsultancy.url_sortner_app.exceptions.ResourceNotFoundException;
 import com.tssconsultancy.url_sortner_app.mappers.UserMapper;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IUserService;
+import com.tssconsultancy.url_sortner_app.services.interfaces.UserVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +25,7 @@ public class UserServiceImp implements IUserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final UserVerificationService userVerificationService;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
@@ -33,22 +34,30 @@ public class UserServiceImp implements IUserService {
             throw new DuplicateResourceException("Email is already registered");
         }
 
-        User user = userMapper.toEntity(requestDto);
-        user.setHashedPassword(passwordEncoder.encode(requestDto.getPassword()));
+        User user = new User(
+                requestDto.getName(),
+                requestDto.getEmail(),
+                passwordEncoder.encode(requestDto.getPassword())
+        );
         user.setRole(UserTypes.USER);
         user.setStatus(UserStatus.ACTIVE);
         user.setRemainingUrlSlots(100);
+        user.setVerified(false);
 
         User saved = userRepository.save(user);
+        userVerificationService.sendEmailVerificationOtp(saved);
         return userMapper.toDto(saved);
     }
 
     @Override
     public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAll().stream()
-                .filter(user -> user.getStatus() == UserStatus.ACTIVE)
-                .map(userMapper::toDto)
-                .collect(Collectors.toList());
+        List<UserResponseDto> userResponses = new java.util.ArrayList<>();
+        for (User user : userRepository.findAll()) {
+            if (user.getStatus() == UserStatus.ACTIVE) {
+                userResponses.add(userMapper.toDto(user));
+            }
+        }
+        return userResponses;
     }
 
     @Override
@@ -81,9 +90,6 @@ public class UserServiceImp implements IUserService {
         if (updateRequestDto.getName() != null) {
             user.setName(updateRequestDto.getName());
         }
-        if (updateRequestDto.getMobileNumber() != null) {
-            user.setMobileNumber(updateRequestDto.getMobileNumber());
-        }
         if (updateRequestDto.getPassword() != null) {
             user.setHashedPassword(passwordEncoder.encode(updateRequestDto.getPassword()));
         }
@@ -104,5 +110,15 @@ public class UserServiceImp implements IUserService {
         user.setStatus(UserStatus.INACTIVE);
         user.setDeletedAt(java.time.LocalDateTime.now());
         userRepository.save(user);
+    }
+
+    @Override
+    public void verifyUserEmail(Long userId, String otpCode) {
+        userVerificationService.verifyEmailOtp(userId, otpCode);
+    }
+
+    @Override
+    public void resendEmailVerificationOtp(Long userId) {
+        userVerificationService.resendEmailVerificationOtp(userId);
     }
 }

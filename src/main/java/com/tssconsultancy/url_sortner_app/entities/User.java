@@ -13,22 +13,24 @@ import java.util.List;
 @Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@RequiredArgsConstructor
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
+    @NonNull
     @Column(nullable = false)
     private String name;
 
+    @NonNull
     @Column(nullable = false, unique = true)
     private String email;
 
-    private String mobileNumber;
 
+    @NonNull
     @Column(nullable = false)
     private String hashedPassword;
 
@@ -42,25 +44,22 @@ public class User {
 
     private Integer remainingUrlSlots;
 
-    @Builder.Default
-    private boolean isVerified = false;
+    @Column(name = "is_verified", nullable = false)
+    private boolean verified = false;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @Builder.Default
     private List<Url> urls = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @Builder.Default
     private List<VarificationToken> verificationTokens = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @Builder.Default
     private List<Payment> payments = new ArrayList<>();
 
     private LocalDateTime createdAt;
@@ -71,19 +70,12 @@ public class User {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.verified = false;
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
-    }
-
-    public boolean isVarified() {
-        return isVerified;
-    }
-
-    public void setVarified(boolean varified) {
-        this.isVerified = varified;
     }
 }
 

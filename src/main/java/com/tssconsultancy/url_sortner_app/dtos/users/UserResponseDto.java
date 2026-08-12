@@ -16,7 +16,6 @@ public class UserResponseDto {
     private Long userId;
     private String name;
     private String email;
-    private String mobileNumber;
     private UserTypes role;
     private UserStatus status;
     private Integer remainingUrlSlots;

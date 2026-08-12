@@ -15,8 +15,6 @@ public class UserUpdateRequestDto {
     @Email(message = "Email must be valid")
     private String email;
 
-    private String mobileNumber;
-
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 }

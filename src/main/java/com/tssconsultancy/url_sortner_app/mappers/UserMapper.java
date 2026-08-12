@@ -13,7 +13,7 @@ public interface UserMapper {
     @Mapping(target = "role", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "remainingUrlSlots", ignore = true)
-    @Mapping(target = "isVerified", ignore = true)
+    @Mapping(target = "verified", ignore = true)
     @Mapping(target = "profilePicturePath", ignore = true)
     @Mapping(target = "urls", ignore = true)
     @Mapping(target = "verificationTokens", ignore = true)
