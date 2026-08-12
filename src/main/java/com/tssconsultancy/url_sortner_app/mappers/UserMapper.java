@@ -16,7 +16,6 @@ public interface UserMapper {
     @Mapping(target = "verified", ignore = true)
     @Mapping(target = "profilePicturePath", ignore = true)
     @Mapping(target = "urls", ignore = true)
-    @Mapping(target = "verificationTokens", ignore = true)
     @Mapping(target = "payments", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

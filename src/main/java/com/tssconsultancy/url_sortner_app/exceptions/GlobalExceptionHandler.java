@@ -38,10 +38,17 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", errors);
     }
 
+    @ExceptionHandler(org.springframework.web.bind.MissingRequestHeaderException.class)
+    public ResponseEntity<Object> handleMissingHeader(org.springframework.web.bind.MissingRequestHeaderException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "MISSING_HEADER",
+                "Missing required header: '" + ex.getHeaderName() + "'. Please pass '" + ex.getHeaderName() + ": <userId>' in request headers.");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGenericException(Exception ex) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", ex.getMessage());
     }
+
 
     private ResponseEntity<Object> buildErrorResponse(HttpStatus status, String error, Object message) {
         Map<String, Object> body = new HashMap<>();
