@@ -14,7 +14,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Url {
 
     @Id
@@ -33,7 +32,6 @@ public class Url {
     private Integer visitLimit;
     private Integer remainingVisits;
 
-    @Builder.Default
     private Integer totalVisits = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,13 +43,11 @@ public class Url {
     @OneToMany(mappedBy = "url", cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @Builder.Default
     private List<Media> mediaList = new ArrayList<>();
 
     @OneToMany(mappedBy = "url", cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @Builder.Default
     private List<Payment> payments = new ArrayList<>();
 
     private LocalDateTime createdAt;
