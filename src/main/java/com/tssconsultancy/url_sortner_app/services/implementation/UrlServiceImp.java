@@ -179,17 +179,18 @@ public class UrlServiceImp implements IUrlService {
     }
 
     private Integer getSystemConfigVisitLimit() {
-        Optional<SystemConfig> configOpt = systemConfigRepository.findByConfigKey(SystemConfigConstants.DEFAULT_VISIT_LIMIT_KEY);
-        if(configOpt.isEmpty()) {
-            return SystemConfigConstants.FALLBACK_DEFAULT_VISIT_LIMIT;
+        Optional<SystemConfig> configOpt = systemConfigRepository.findByConfigKey(SystemConfigConstants.MAX_VISITS_PER_FREE_URL);
+        if (configOpt.isEmpty()) {
+            return SystemConfigConstants.FALLBACK_MAX_VISITS_PER_FREE_URL;
         }
 
         try {
             return Integer.parseInt(configOpt.get().getConfigValue());
         } catch (NumberFormatException e) {
-            return SystemConfigConstants.FALLBACK_DEFAULT_VISIT_LIMIT;
+            return SystemConfigConstants.FALLBACK_MAX_VISITS_PER_FREE_URL;
         }
     }
+
 
     private String generateUniqueShortAlias() {
         int maxAttempts = 10;

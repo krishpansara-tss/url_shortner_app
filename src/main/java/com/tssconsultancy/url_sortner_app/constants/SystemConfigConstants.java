@@ -5,12 +5,17 @@ public final class SystemConfigConstants {
     private SystemConfigConstants() {
     }
 
-    // All keys
-    public static final String DEFAULT_VISIT_LIMIT_KEY = "DEFAULT_VISIT_LIMIT";
-    public static final String MAX_FREE_URL_SLOTS_KEY = "MAX_FREE_URL_SLOTS";
-    public static final String DEFAULT_URL_EXPIRATION_DAYS_KEY = "DEFAULT_URL_EXPIRATION_DAYS";
+    // System Configuration Keys
+    public static final String MAX_VISITS_PER_FREE_URL = "MAX_VISITS_PER_FREE_URL";
+    public static final String RENEWAL_FEE = "RENEWAL_FEE";
+    public static final String RENEWAL_VISITS_GRANTED = "RENEWAL_VISITS_GRANTED";
+    public static final String FREE_URL_QUOTA_PER_USER = "FREE_URL_QUOTA_PER_USER";
+    public static final String PRICE_PER_ADDITIONAL_SLOT = "PRICE_PER_ADDITIONAL_SLOT";
 
-    // Defualt values
-    public static final int FALLBACK_DEFAULT_VISIT_LIMIT = 100;
-    public static final int FALLBACK_MAX_FREE_URL_SLOTS = 10;
+    // Fallback Default Values
+    public static final int FALLBACK_MAX_VISITS_PER_FREE_URL = 100;
+    public static final double FALLBACK_RENEWAL_FEE = 50;
+    public static final int FALLBACK_RENEWAL_VISITS_GRANTED = 500;
+    public static final int FALLBACK_FREE_URL_QUOTA_PER_USER = 10;
+    public static final double FALLBACK_PRICE_PER_ADDITIONAL_SLOT = 20;
 }
