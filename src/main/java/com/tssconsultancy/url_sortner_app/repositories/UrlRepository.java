@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface UrlRepository extends JpaRepository<Url, Long> {
@@ -27,5 +29,13 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
 
     @Query("SELECT COALESCE(SUM(u.totalVisits), 0) FROM Url u WHERE u.user = :user")
     long sumTotalVisitsByUser(@Param("user") User user);
+    
+    // ========== SCHEDULER METHODS ==========
+    
+    /**
+     * Find all active URLs that have expired.
+     * Used by UrlExpiryScheduler to disable expired URLs.
+     */
+    List<Url> findByUrlStatusAndExpiresAtBefore(UrlStatus urlStatus, LocalDateTime expiresAt);
 }
 
