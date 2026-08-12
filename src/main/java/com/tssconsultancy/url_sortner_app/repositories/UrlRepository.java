@@ -20,6 +20,7 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
 
     boolean existsByShortUrl(String shortUrl);
     boolean existsByLongUrl(String longUrl);
+
     long countByUser(User user);
 
     long countByUserAndUrlStatus(User user, UrlStatus urlStatus);
