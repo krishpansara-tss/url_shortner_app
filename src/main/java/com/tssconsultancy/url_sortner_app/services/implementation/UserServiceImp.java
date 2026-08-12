@@ -10,9 +10,10 @@ import com.tssconsultancy.url_sortner_app.entities.User;
 import com.tssconsultancy.url_sortner_app.enums.UrlStatus;
 import com.tssconsultancy.url_sortner_app.enums.UserStatus;
 import com.tssconsultancy.url_sortner_app.enums.UserTypes;
-import com.tssconsultancy.url_sortner_app.exceptions.DuplicateResourceException;
-import com.tssconsultancy.url_sortner_app.exceptions.InvalidRequestException;
-import com.tssconsultancy.url_sortner_app.exceptions.ResourceNotFoundException;
+import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
+import com.tssconsultancy.url_sortner_app.exceptions.base.ResourceNotFoundException;
+import com.tssconsultancy.url_sortner_app.exceptions.derived.EmailAlreadyExistsException;
+import com.tssconsultancy.url_sortner_app.exceptions.derived.UserEmailNotFoundException;
 import com.tssconsultancy.url_sortner_app.mappers.UserMapper;
 import com.tssconsultancy.url_sortner_app.repositories.UrlRepository;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
@@ -38,7 +39,7 @@ public class UserServiceImp implements IUserService {
     @Override
     public UserResponseDto createUser(UserRequestDto requestDto) {
         if (userRepository.existsByEmail(requestDto.getEmail())) {
-            throw new DuplicateResourceException("Email is already registered");
+            throw new UserEmailNotFoundException(requestDto.getEmail());
         }
 
         User user = new User(
@@ -79,7 +80,7 @@ public class UserServiceImp implements IUserService {
 
         if (updateRequestDto.getEmail() != null && !updateRequestDto.getEmail().equals(user.getEmail())) {
             if (userRepository.existsByEmail(updateRequestDto.getEmail())) {
-                throw new DuplicateResourceException("Email is already registered");
+                throw new UserEmailNotFoundException(updateRequestDto.getEmail());
             }
             user.setEmail(updateRequestDto.getEmail());
         }
@@ -137,7 +138,7 @@ public class UserServiceImp implements IUserService {
 
         if (updateDto.getEmail() != null && !updateDto.getEmail().equals(user.getEmail())) {
             if (userRepository.existsByEmail(updateDto.getEmail())) {
-                throw new DuplicateResourceException("Email is already registered");
+                throw new EmailAlreadyExistsException(updateDto.getEmail());
             }
             user.setEmail(updateDto.getEmail());
         }
@@ -157,7 +158,7 @@ public class UserServiceImp implements IUserService {
         User user = findActiveUserById(userId);
 
         if (!passwordEncoder.matches(requestDto.getOldPassword(), user.getHashedPassword())) {
-            throw new InvalidRequestException("Old password is incorrect");
+            throw new InvalidOperationException("Old password is incorrect");
         }
 
         user.setHashedPassword(passwordEncoder.encode(requestDto.getNewPassword()));
@@ -184,7 +185,7 @@ public class UserServiceImp implements IUserService {
 
     private User findActiveUserById(Long userId) {
         if (userId == null) {
-            throw new InvalidRequestException("User ID is required");
+            throw new InvalidOperationException("User ID is required");
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));

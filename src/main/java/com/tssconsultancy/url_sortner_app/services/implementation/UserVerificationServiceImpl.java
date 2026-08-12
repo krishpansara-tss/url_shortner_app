@@ -1,8 +1,8 @@
 package com.tssconsultancy.url_sortner_app.services.implementation;
 
 import com.tssconsultancy.url_sortner_app.entities.User;
-import com.tssconsultancy.url_sortner_app.exceptions.InvalidRequestException;
-import com.tssconsultancy.url_sortner_app.exceptions.ResourceNotFoundException;
+import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
+import com.tssconsultancy.url_sortner_app.exceptions.base.ResourceNotFoundException;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
 import com.tssconsultancy.url_sortner_app.services.interfaces.UserVerificationService;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,7 @@ public class UserVerificationServiceImpl implements UserVerificationService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
 
         if (user.isVerified()) {
-            throw new InvalidRequestException("User email is already verified.");
+            throw new InvalidOperationException("User email is already verified.");
         }
 
         sendEmailVerificationOtp(user);

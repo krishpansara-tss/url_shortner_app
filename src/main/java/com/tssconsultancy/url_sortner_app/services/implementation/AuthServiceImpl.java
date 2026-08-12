@@ -7,9 +7,9 @@ import com.tssconsultancy.url_sortner_app.entities.TokenBlacklist;
 import com.tssconsultancy.url_sortner_app.entities.User;
 import com.tssconsultancy.url_sortner_app.enums.UserStatus;
 import com.tssconsultancy.url_sortner_app.enums.UserTypes;
-import com.tssconsultancy.url_sortner_app.exceptions.DuplicateResourceException;
-import com.tssconsultancy.url_sortner_app.exceptions.InvalidRequestException;
-import com.tssconsultancy.url_sortner_app.exceptions.ResourceNotFoundException;
+import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
+import com.tssconsultancy.url_sortner_app.exceptions.base.ResourceNotFoundException;
+import com.tssconsultancy.url_sortner_app.exceptions.derived.EmailAlreadyExistsException;
 import com.tssconsultancy.url_sortner_app.mappers.UserMapper;
 import com.tssconsultancy.url_sortner_app.repositories.TokenBlacklistRepository;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
@@ -36,7 +36,7 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public UserResponseDto register(UserRequestDto requestDto) {
         if (userRepository.existsByEmail(requestDto.getEmail())) {
-            throw new DuplicateResourceException("Email is already registered");
+            throw new EmailAlreadyExistsException(requestDto.getEmail());
         }
 
         User user = new User(
@@ -71,7 +71,7 @@ public class AuthServiceImpl implements IAuthService {
         User user = findUserByEmail(requestDto.getEmail());
 
         if (!passwordEncoder.matches(requestDto.getPassword(), user.getHashedPassword())) {
-            throw new InvalidRequestException("Invalid email or password");
+            throw new InvalidOperationException("Invalid email or password");
         }
 
         String generatedToken = "Bearer_" + UUID.randomUUID().toString();
@@ -131,7 +131,7 @@ public class AuthServiceImpl implements IAuthService {
 
     private User findUserById(Long userId) {
         if (userId == null) {
-            throw new InvalidRequestException("User ID is required");
+            throw new InvalidOperationException("User ID is required");
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
@@ -144,7 +144,7 @@ public class AuthServiceImpl implements IAuthService {
 
     private User findUserByEmail(String email) {
         if (email == null || email.isBlank()) {
-            throw new InvalidRequestException("Email is required");
+            throw new InvalidOperationException("Email is required");
         }
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email " + email));
