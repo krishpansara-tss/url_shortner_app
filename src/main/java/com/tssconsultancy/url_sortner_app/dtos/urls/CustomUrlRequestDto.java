@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Data
-public class UrlRequestDto {
+public class CustomUrlRequestDto {
     private String longUrl;
-    private String customAlias;
+    private String alias;
 }
