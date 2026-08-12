@@ -1,6 +1,197 @@
 package com.tssconsultancy.url_sortner_app.services.implementation;
 
-import com.tssconsultancy.url_sortner_app.services.interfaces.UserService;
+import com.tssconsultancy.url_sortner_app.dtos.users.PasswordChangeRequestDto;
+import com.tssconsultancy.url_sortner_app.dtos.users.UserMeUpdateRequestDto;
+import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
+import com.tssconsultancy.url_sortner_app.dtos.users.UserResponseDto;
+import com.tssconsultancy.url_sortner_app.dtos.users.UserUpdateRequestDto;
+import com.tssconsultancy.url_sortner_app.dtos.users.UserUsageResponseDto;
+import com.tssconsultancy.url_sortner_app.entities.User;
+import com.tssconsultancy.url_sortner_app.enums.UrlStatus;
+import com.tssconsultancy.url_sortner_app.enums.UserStatus;
+import com.tssconsultancy.url_sortner_app.enums.UserTypes;
+import com.tssconsultancy.url_sortner_app.exceptions.DuplicateResourceException;
+import com.tssconsultancy.url_sortner_app.exceptions.InvalidRequestException;
+import com.tssconsultancy.url_sortner_app.exceptions.ResourceNotFoundException;
+import com.tssconsultancy.url_sortner_app.mappers.UserMapper;
+import com.tssconsultancy.url_sortner_app.repositories.UrlRepository;
+import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
+import com.tssconsultancy.url_sortner_app.services.interfaces.IUserService;
+import com.tssconsultancy.url_sortner_app.services.interfaces.UserVerificationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
-public class UserServiceImp implements UserService {
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class UserServiceImp implements IUserService {
+
+    private final UserRepository userRepository;
+    private final UrlRepository urlRepository;
+    private final UserMapper userMapper;
+    private final UserVerificationService userVerificationService;
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @Override
+    public UserResponseDto createUser(UserRequestDto requestDto) {
+        if (userRepository.existsByEmail(requestDto.getEmail())) {
+            throw new DuplicateResourceException("Email is already registered");
+        }
+
+        User user = new User(
+                requestDto.getName(),
+                requestDto.getEmail(),
+                passwordEncoder.encode(requestDto.getPassword())
+        );
+        user.setRole(UserTypes.USER);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setRemainingUrlSlots(100);
+        user.setVerified(false);
+
+        User saved = userRepository.save(user);
+        userVerificationService.sendEmailVerificationOtp(saved);
+        return userMapper.toDto(saved);
+    }
+
+    @Override
+    public List<UserResponseDto> getAllUsers() {
+        List<UserResponseDto> userResponses = new java.util.ArrayList<>();
+        for (User user : userRepository.findAll()) {
+            if (user.getStatus() == UserStatus.ACTIVE) {
+                userResponses.add(userMapper.toDto(user));
+            }
+        }
+        return userResponses;
+    }
+
+    @Override
+    public UserResponseDto getUserById(Long id) {
+        User user = findActiveUserById(id);
+        return userMapper.toDto(user);
+    }
+
+    @Override
+    public UserResponseDto updateUser(Long id, UserUpdateRequestDto updateRequestDto) {
+        User user = findActiveUserById(id);
+
+        if (updateRequestDto.getEmail() != null && !updateRequestDto.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(updateRequestDto.getEmail())) {
+                throw new DuplicateResourceException("Email is already registered");
+            }
+            user.setEmail(updateRequestDto.getEmail());
+        }
+        if (updateRequestDto.getName() != null) {
+            user.setName(updateRequestDto.getName());
+        }
+        if (updateRequestDto.getPassword() != null) {
+            user.setHashedPassword(passwordEncoder.encode(updateRequestDto.getPassword()));
+        }
+
+        User saved = userRepository.save(user);
+        return userMapper.toDto(saved);
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        User user = findActiveUserById(id);
+
+        user.setStatus(UserStatus.INACTIVE);
+        user.setDeletedAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    @Override
+    public void verifyUserEmail(Long userId, String otpCode) {
+        userVerificationService.verifyEmailOtp(userId, otpCode);
+    }
+
+    @Override
+    public void resendEmailVerificationOtp(Long userId) {
+        userVerificationService.resendEmailVerificationOtp(userId);
+    }
+
+    @Override
+    public UserResponseDto getCurrentUser(Long userId) {
+        User user = findActiveUserById(userId);
+        return userMapper.toDto(user);
+    }
+
+    @Override
+    public UserResponseDto getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email " + email));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new ResourceNotFoundException("User not found with email " + email);
+        }
+        return userMapper.toDto(user);
+    }
+
+
+    @Override
+    public UserResponseDto updateCurrentUser(Long userId, UserMeUpdateRequestDto updateDto) {
+        User user = findActiveUserById(userId);
+
+        if (updateDto.getEmail() != null && !updateDto.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(updateDto.getEmail())) {
+                throw new DuplicateResourceException("Email is already registered");
+            }
+            user.setEmail(updateDto.getEmail());
+        }
+        if (updateDto.getName() != null) {
+            user.setName(updateDto.getName());
+        }
+        if (updateDto.getProfilePicturePath() != null) {
+            user.setProfilePicturePath(updateDto.getProfilePicturePath());
+        }
+
+        User saved = userRepository.save(user);
+        return userMapper.toDto(saved);
+    }
+
+    @Override
+    public void changePassword(Long userId, PasswordChangeRequestDto requestDto) {
+        User user = findActiveUserById(userId);
+
+        if (!passwordEncoder.matches(requestDto.getOldPassword(), user.getHashedPassword())) {
+            throw new InvalidRequestException("Old password is incorrect");
+        }
+
+        user.setHashedPassword(passwordEncoder.encode(requestDto.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    public UserUsageResponseDto getUserUsage(Long userId) {
+        User user = findActiveUserById(userId);
+
+        long totalUrls = urlRepository.countByUser(user);
+        long activeUrls = urlRepository.countByUserAndUrlStatus(user, UrlStatus.ACTIVE);
+        long totalVisits = urlRepository.sumTotalVisitsByUser(user);
+
+        return UserUsageResponseDto.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .remainingUrlSlots(user.getRemainingUrlSlots())
+                .totalUrlsCreated(totalUrls)
+                .activeUrlsCount(activeUrls)
+                .totalUrlVisits(totalVisits)
+                .build();
+    }
+
+    private User findActiveUserById(Long userId) {
+        if (userId == null) {
+            throw new InvalidRequestException("User ID is required");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new ResourceNotFoundException("User not found with id " + userId);
+        }
+        return user;
+    }
 }
