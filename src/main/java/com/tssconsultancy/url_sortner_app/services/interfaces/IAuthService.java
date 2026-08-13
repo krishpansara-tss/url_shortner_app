@@ -9,6 +9,8 @@ public interface IAuthService {
 
     void verifyEmail(VerifyEmailRequestDto requestDto);
 
+    void resendVerificationOtp(String email);
+
     LoginResponseDto login(LoginRequestDto requestDto);
 
     UserResponseDto getMe(Long userId);

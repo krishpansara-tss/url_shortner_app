@@ -4,13 +4,13 @@ import com.tssconsultancy.url_sortner_app.entities.User;
 import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
 import com.tssconsultancy.url_sortner_app.exceptions.base.ResourceNotFoundException;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
-import com.tssconsultancy.url_sortner_app.services.interfaces.UserVerificationService;
+import com.tssconsultancy.url_sortner_app.services.interfaces.IUserVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class UserVerificationServiceImpl implements UserVerificationService {
+public class IUserVerificationServiceImpl implements IUserVerificationService {
 
     private final UserRepository userRepository;
     private final NotificationProcessor notificationProcessor;

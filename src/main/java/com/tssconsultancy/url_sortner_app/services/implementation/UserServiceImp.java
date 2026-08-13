@@ -18,7 +18,7 @@ import com.tssconsultancy.url_sortner_app.mappers.UserMapper;
 import com.tssconsultancy.url_sortner_app.repositories.UrlRepository;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IUserService;
-import com.tssconsultancy.url_sortner_app.services.interfaces.UserVerificationService;
+import com.tssconsultancy.url_sortner_app.services.interfaces.IUserVerificationService;
 import com.tssconsultancy.url_sortner_app.services.ImageUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,7 +35,7 @@ public class UserServiceImp implements IUserService {
     private final UserRepository userRepository;
     private final UrlRepository urlRepository;
     private final UserMapper userMapper;
-    private final UserVerificationService userVerificationService;
+    private final IUserVerificationService IUserVerificationService;
     private final ImageUploadService imageUploadService;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -56,7 +56,7 @@ public class UserServiceImp implements IUserService {
         user.setVerified(false);
 
         User saved = userRepository.save(user);
-        userVerificationService.sendEmailVerificationOtp(saved);
+        IUserVerificationService.sendEmailVerificationOtp(saved);
         return userMapper.toDto(saved);
     }
 
@@ -109,12 +109,12 @@ public class UserServiceImp implements IUserService {
 
     @Override
     public void verifyUserEmail(Long userId, String otpCode) {
-        userVerificationService.verifyEmailOtp(userId, otpCode);
+        IUserVerificationService.verifyEmailOtp(userId, otpCode);
     }
 
     @Override
     public void resendEmailVerificationOtp(Long userId) {
-        userVerificationService.resendEmailVerificationOtp(userId);
+        IUserVerificationService.resendEmailVerificationOtp(userId);
     }
 
     @Override

@@ -37,6 +37,15 @@ public class  AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/resend-verification-otp")
+    public ResponseEntity<Map<String, String>> resendVerificationOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        authService.resendVerificationOtp(email);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Verification OTP sent successfully");
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto requestDto) {
         LoginResponseDto response = authService.login(requestDto);
@@ -52,8 +61,7 @@ public class  AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout(
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader,
+    public ResponseEntity<Map<String, String>> logout(@RequestHeader(value = "X-User-Id", required = false) Long userIdHeader,
             @RequestHeader(value = "Authorization", required = false) String token) {
         Long userId = requireUserId(userIdHeader);
         authService.logout(userId, token);
