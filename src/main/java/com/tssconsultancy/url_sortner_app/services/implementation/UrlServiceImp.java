@@ -252,6 +252,20 @@ public class UrlServiceImp implements IUrlService {
         }
     }
 
+    @Override
+    public void activateUrlAfterPayment(Long urlId) {
+        Url url = urlRepository.findById(urlId).orElseThrow(
+                () -> new ResourceNotFoundException("URL not found for activation")
+        );
+
+        if (url.getUrlStatus() == UrlStatus.ACTIVE) {
+            return;
+        }
+
+        url.setUrlStatus(UrlStatus.ACTIVE);
+        urlRepository.save(url);
+    }
+
 
     private String generateUniqueShortAlias() {
         int maxAttempts = 10;

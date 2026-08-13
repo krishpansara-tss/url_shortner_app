@@ -99,6 +99,9 @@ public class PaymentServiceImpl implements IPaymentService {
             int currentSlots = user.getRemainingUrlSlots() != null ? user.getRemainingUrlSlots() : 0;
             user.setRemainingUrlSlots(currentSlots + 1);
             userRepository.save(user);
+        } else if (type == PaymentType.CUSTOM_ALIAS && url != null) {
+            url.setUrlStatus(UrlStatus.ACTIVE);
+            urlRepository.save(url);
         }
     }
 

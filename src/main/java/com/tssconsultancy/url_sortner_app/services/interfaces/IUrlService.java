@@ -18,4 +18,5 @@ public interface IUrlService {
     PageResponse<UrlResponseDto> getAllUrls(Pageable pageable);
     String resolveShortUrlAndRecordVisit(String shortUrl);
     void deleteUrl(Long urlId, Long userId);
+    void activateUrlAfterPayment(Long urlId);
 }

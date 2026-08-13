@@ -6,6 +6,8 @@ import com.tssconsultancy.url_sortner_app.dtos.urls.CustomUrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlUpdateRequestDto;
+import com.tssconsultancy.url_sortner_app.enums.PaymentType;
+import com.tssconsultancy.url_sortner_app.services.implementation.PaymentServiceImpl;
 import com.tssconsultancy.url_sortner_app.services.implementation.UrlServiceImp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UrlController {
     private final UrlServiceImp urlService;
+    private final PaymentServiceImpl paymentService;
 
     @PostMapping
     public ResponseEntity<UrlResponseDto> generateShortUrl(@RequestBody UrlRequestDto dto,
@@ -31,7 +34,7 @@ public class UrlController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{shortCode}")
+    @GetMapping("/redirect/{shortCode}")
     public ResponseEntity<Void> redirect(@PathVariable String shortCode){
         String longUrl = urlService.resolveShortUrlAndRecordVisit(shortCode);
 
@@ -42,12 +45,15 @@ public class UrlController {
     }
 
     @PostMapping("/custom")
-    public ResponseEntity<UrlResponseDto> createCustomUrl(
+    public ResponseEntity<PaymentResponseDto> createCustomUrl(
             @RequestBody CustomUrlRequestDto dto,
             @RequestParam Long userId) {
 
-        UrlResponseDto response = urlService.createCustomUrl(dto, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        UrlResponseDto reservedUrl = urlService.createCustomUrl(dto, userId);
+
+        PaymentResponseDto paymentBill = paymentService.initiatePayment(userId, reservedUrl.getUrlId(), PaymentType.CUSTOM_ALIAS);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentBill);
     }
 
     @GetMapping
