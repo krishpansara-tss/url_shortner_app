@@ -6,6 +6,8 @@ import com.tssconsultancy.url_sortner_app.dtos.urls.CustomUrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlUpdateRequestDto;
+import com.tssconsultancy.url_sortner_app.enums.PaymentType;
+import com.tssconsultancy.url_sortner_app.services.implementation.PaymentServiceImpl;
 import com.tssconsultancy.url_sortner_app.services.implementation.UrlServiceImp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UrlController {
     private final UrlServiceImp urlService;
+    private final PaymentServiceImpl paymentService;
 
     @PostMapping
     public ResponseEntity<UrlResponseDto> generateShortUrl(@RequestBody UrlRequestDto dto,
@@ -31,7 +34,7 @@ public class UrlController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{shortCode}")
+    @GetMapping("/redirect/{shortCode}")
     public ResponseEntity<Void> redirect(@PathVariable String shortCode){
         String longUrl = urlService.resolveShortUrlAndRecordVisit(shortCode);
 
@@ -42,17 +45,20 @@ public class UrlController {
     }
 
     @PostMapping("/custom")
-    public ResponseEntity<UrlResponseDto> createCustomUrl(
+    public ResponseEntity<PaymentResponseDto> createCustomUrl(
             @RequestBody CustomUrlRequestDto dto,
             @RequestParam Long userId) {
 
-        UrlResponseDto response = urlService.createCustomUrl(dto, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        UrlResponseDto reservedUrl = urlService.createCustomUrl(dto, userId);
+
+        PaymentResponseDto paymentBill = paymentService.initiatePayment(userId, reservedUrl.getUrlId(), PaymentType.CUSTOM_ALIAS);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentBill);
     }
 
     @GetMapping
     public ResponseEntity<PageResponse<UrlResponseDto>> getUserUrls(
-            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer page,
             @RequestParam(defaultValue = "0") Integer size,
             @RequestParam Long userId) {
         Pageable pageable = PageRequest.of(page, size);
@@ -62,9 +68,10 @@ public class UrlController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UrlResponseDto> getUrlById(
-            @PathVariable("id") Long urlId) {
+            @PathVariable("id") Long urlId,
+            @RequestParam Long userId) {
 
-        UrlResponseDto response = urlService.getUrlById(urlId);
+        UrlResponseDto response = urlService.getUrlByIdAndUserId(urlId, userId);
         return ResponseEntity.ok(response);
     }
 
@@ -87,16 +94,8 @@ public class UrlController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * GET /api/v1/urls/{id}/purchases
-     * Retrieves all purchases/payments related to this specific URL.
-     */
-//    @GetMapping("/{id}/purchases")
-//    public ResponseEntity<List<PaymentResponseDto>> getUrlPurchases(
-//            @PathVariable("id") Long urlId,
-//            @RequestParam Long userId) { // TODO: AUTH
-//
-//        List<PaymentResponseDto> purchases = urlService.getUrlPurchases(urlId, userId);
-//        return ResponseEntity.ok(purchases);
-//    }
+
+    // TODO: URL STATUS
+    // TODO: URL STATS
+    // TODO: URL RENEW
 }
