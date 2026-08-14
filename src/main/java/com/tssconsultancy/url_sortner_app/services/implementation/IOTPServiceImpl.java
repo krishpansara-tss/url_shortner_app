@@ -1,12 +1,12 @@
 package com.tssconsultancy.url_sortner_app.services.implementation;
 
-import com.tssconsultancy.url_sortner_app.services.interfaces.OTPService;
+import com.tssconsultancy.url_sortner_app.services.interfaces.IOTPService;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 
 @Service
-public class OTPServiceImpl implements OTPService {
+public class IOTPServiceImpl implements IOTPService {
 
     private final SecureRandom random = new SecureRandom();
 

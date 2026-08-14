@@ -13,6 +13,7 @@ import com.tssconsultancy.url_sortner_app.exceptions.derived.EmailAlreadyExistsE
 import com.tssconsultancy.url_sortner_app.mappers.UserMapper;
 import com.tssconsultancy.url_sortner_app.repositories.TokenBlacklistRepository;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
+import com.tssconsultancy.url_sortner_app.security.JwtTokenProvider;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +31,7 @@ public class AuthServiceImpl implements IAuthService {
     private final TokenBlacklistRepository tokenBlacklistRepository;
     private final UserMapper userMapper;
     private final NotificationProcessor notificationProcessor;
+    private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
@@ -67,6 +68,17 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     @Override
+    public void resendVerificationOtp(String email) {
+        User user = findUserByEmail(email);
+
+        if (user.isVerified()) {
+            throw new InvalidOperationException("User email is already verified.");
+        }
+
+        notificationProcessor.getProcessor("email").sendOtp(user.getEmail());
+    }
+
+    @Override
     public LoginResponseDto login(LoginRequestDto requestDto) {
         User user = findUserByEmail(requestDto.getEmail());
 
@@ -74,7 +86,13 @@ public class AuthServiceImpl implements IAuthService {
             throw new InvalidOperationException("Invalid email or password");
         }
 
-        String generatedToken = "Bearer_" + UUID.randomUUID().toString();
+        if (!user.isVerified()) {
+            throw new InvalidOperationException(
+                    "Email is not verified yet. Please verify your email or resend the verification OTP."
+            );
+        }
+
+        String generatedToken = jwtTokenProvider.generateToken(user);
 
         return LoginResponseDto.builder()
                 .token(generatedToken)

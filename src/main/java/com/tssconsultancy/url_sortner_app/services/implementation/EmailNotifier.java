@@ -2,8 +2,8 @@ package com.tssconsultancy.url_sortner_app.services.implementation;
 
 import com.tssconsultancy.url_sortner_app.entities.OTPModel;
 import com.tssconsultancy.url_sortner_app.repositories.OTPRepository;
-import com.tssconsultancy.url_sortner_app.services.interfaces.NotificationService;
-import com.tssconsultancy.url_sortner_app.services.interfaces.OTPService;
+import com.tssconsultancy.url_sortner_app.services.interfaces.INotificationService;
+import com.tssconsultancy.url_sortner_app.services.interfaces.IOTPService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 
 @Service("email")
 @RequiredArgsConstructor
-public class EmailNotifier implements NotificationService {
+public class EmailNotifier implements INotificationService {
     private final JavaMailSender mailSender;
-    private final OTPService otpService;
+    private final IOTPService IOTPService;
     private final OTPRepository otpRepository;
 
     @Override
@@ -64,7 +64,7 @@ public class EmailNotifier implements NotificationService {
             throw new RuntimeException("Too many OTP requests. Try again later.");
         }
 
-        String otp = otpService.generateOtp();
+        String otp = IOTPService.generateOtp();
 
         sendMessage(email, otp);
 

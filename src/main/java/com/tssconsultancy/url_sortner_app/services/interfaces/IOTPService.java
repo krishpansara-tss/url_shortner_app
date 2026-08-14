@@ -1,5 +1,5 @@
 package com.tssconsultancy.url_sortner_app.services.interfaces;
 
-public interface OTPService {
+public interface IOTPService {
     String generateOtp();
 }

@@ -1,6 +1,6 @@
 package com.tssconsultancy.url_sortner_app.services.implementation;
 
-import com.tssconsultancy.url_sortner_app.services.interfaces.NotificationService;
+import com.tssconsultancy.url_sortner_app.services.interfaces.INotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -9,10 +9,10 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class NotificationProcessor {
-    private final Map<String, NotificationService> notificationProcessors;
+    private final Map<String, INotificationService> notificationProcessors;
 
-    public NotificationService getProcessor(String type) {
-        NotificationService processor;
+    public INotificationService getProcessor(String type) {
+        INotificationService processor;
         if (type == null) {
             processor = notificationProcessors.get("sms");
             if (processor == null) {

@@ -15,8 +15,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -96,6 +99,38 @@ public class UserController {
     @PostMapping("/{id}/resend-email-verification")
     public ResponseEntity<Void> resendEmailVerification(@PathVariable Long id) {
         userService.resendEmailVerificationOtp(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ========== PROFILE PICTURE ENDPOINTS ==========
+
+    @PostMapping("/me/profile-picture")
+    public ResponseEntity<Map<String, String>> uploadProfilePicture(
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader,
+            @RequestParam("image") MultipartFile image) {
+        Long userId = requireUserId(userIdHeader);
+        String imageUrl = userService.uploadProfilePicture(userId, image);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Profile picture uploaded successfully");
+        response.put("imageUrl", imageUrl);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{id}/profile-picture")
+    public ResponseEntity<Map<String, String>> getProfilePicture(@PathVariable Long id) {
+        String imageUrl = userService.getProfilePicture(id);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("imageUrl", imageUrl);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/me/profile-picture")
+    public ResponseEntity<Void> deleteProfilePicture(
+            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader) {
+        Long userId = requireUserId(userIdHeader);
+        userService.deleteProfilePicture(userId);
         return ResponseEntity.noContent().build();
     }
 
