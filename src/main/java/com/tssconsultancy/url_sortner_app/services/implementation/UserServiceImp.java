@@ -42,7 +42,7 @@ public class UserServiceImp implements IUserService {
     @Override
     public UserResponseDto createUser(UserRequestDto requestDto) {
         if (userRepository.existsByEmail(requestDto.getEmail())) {
-            throw new UserEmailNotFoundException(requestDto.getEmail());
+            throw new EmailAlreadyExistsException(requestDto.getEmail());
         }
 
         User user = new User(
@@ -83,7 +83,7 @@ public class UserServiceImp implements IUserService {
 
         if (updateRequestDto.getEmail() != null && !updateRequestDto.getEmail().equals(user.getEmail())) {
             if (userRepository.existsByEmail(updateRequestDto.getEmail())) {
-                throw new UserEmailNotFoundException(updateRequestDto.getEmail());
+                throw new EmailAlreadyExistsException(updateRequestDto.getEmail());
             }
             user.setEmail(updateRequestDto.getEmail());
         }

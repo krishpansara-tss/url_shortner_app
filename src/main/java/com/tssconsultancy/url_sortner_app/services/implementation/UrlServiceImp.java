@@ -160,33 +160,8 @@ public class UrlServiceImp implements IUrlService {
     }
 
     @Override
-    public UrlResponseDto getUrlById(Long urlId) {
-        return null;
-    }
-
-    @Override
     public PageResponse<UrlResponseDto> getAllUrlByUserId(Long userId, Pageable pageable) {
         Page<Url> urlPage = urlRepository.findAllByUserUserId(userId, pageable);
-
-        List<UrlResponseDto> content = urlPage
-                .getContent()
-                .stream()
-                .map(urlMapper::toResponse)
-                .toList();
-
-        return PageResponse.<UrlResponseDto>builder()
-                .content(content)
-                .page(urlPage.getNumber())
-                .size(urlPage.getSize())
-                .totalElements(urlPage.getTotalElements())
-                .totalPages(urlPage.getTotalPages())
-                .last(urlPage.isLast())
-                .build();
-    }
-
-    @Override
-    public PageResponse<UrlResponseDto> getAllUrls(Pageable pageable) {
-        Page<Url> urlPage = urlRepository.findAll(pageable);
 
         List<UrlResponseDto> content = urlPage
                 .getContent()
@@ -250,6 +225,20 @@ public class UrlServiceImp implements IUrlService {
         } catch (NumberFormatException e) {
             return SystemConfigConstants.FALLBACK_MAX_VISITS_PER_FREE_URL;
         }
+    }
+
+    @Override
+    public void activateUrlAfterPayment(Long urlId) {
+        Url url = urlRepository.findById(urlId).orElseThrow(
+                () -> new ResourceNotFoundException("URL not found for activation")
+        );
+
+        if (url.getUrlStatus() == UrlStatus.ACTIVE) {
+            return;
+        }
+
+        url.setUrlStatus(UrlStatus.ACTIVE);
+        urlRepository.save(url);
     }
 
 

@@ -12,10 +12,9 @@ public interface IUrlService {
     UrlResponseDto getUrlByIdAndUserId(Long urlId, Long userId);
     UrlResponseDto updateUrl(Long urlId, Long userId, UrlUpdateRequestDto dto);
     UrlResponseDto createCustomUrl(CustomUrlRequestDto dto, Long userId);
-    UrlResponseDto getUrlById(Long urlId);
     PageResponse<UrlResponseDto> getAllUrlByUserId(Long userId, Pageable pageable);
 
-    PageResponse<UrlResponseDto> getAllUrls(Pageable pageable);
     String resolveShortUrlAndRecordVisit(String shortUrl);
     void deleteUrl(Long urlId, Long userId);
+    void activateUrlAfterPayment(Long urlId);
 }
