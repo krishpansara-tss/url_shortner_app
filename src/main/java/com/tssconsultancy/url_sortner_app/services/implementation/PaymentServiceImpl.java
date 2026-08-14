@@ -177,4 +177,6 @@ public class PaymentServiceImpl implements IPaymentService {
 
         return price;
     }
+
+    // TODO: give url slots according to the user's need and pricing according to it
 }

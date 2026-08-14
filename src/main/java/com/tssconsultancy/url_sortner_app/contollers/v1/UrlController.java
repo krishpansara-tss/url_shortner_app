@@ -58,7 +58,7 @@ public class UrlController {
 
     @GetMapping
     public ResponseEntity<PageResponse<UrlResponseDto>> getUserUrls(
-            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer page,
             @RequestParam(defaultValue = "0") Integer size,
             @RequestParam Long userId) {
         Pageable pageable = PageRequest.of(page, size);
@@ -68,9 +68,10 @@ public class UrlController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UrlResponseDto> getUrlById(
-            @PathVariable("id") Long urlId) {
+            @PathVariable("id") Long urlId,
+            @RequestParam Long userId) {
 
-        UrlResponseDto response = urlService.getUrlById(urlId);
+        UrlResponseDto response = urlService.getUrlByIdAndUserId(urlId, userId);
         return ResponseEntity.ok(response);
     }
 
@@ -93,16 +94,8 @@ public class UrlController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * GET /api/v1/urls/{id}/purchases
-     * Retrieves all purchases/payments related to this specific URL.
-     */
-//    @GetMapping("/{id}/purchases")
-//    public ResponseEntity<List<PaymentResponseDto>> getUrlPurchases(
-//            @PathVariable("id") Long urlId,
-//            @RequestParam Long userId) { // TODO: AUTH
-//
-//        List<PaymentResponseDto> purchases = urlService.getUrlPurchases(urlId, userId);
-//        return ResponseEntity.ok(purchases);
-//    }
+
+    // TODO: URL STATUS
+    // TODO: URL STATS
+    // TODO: URL RENEW
 }
