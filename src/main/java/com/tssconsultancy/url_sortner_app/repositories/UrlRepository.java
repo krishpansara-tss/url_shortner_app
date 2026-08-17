@@ -19,6 +19,7 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
     Optional<Url> findByUrlIdAndUserUserId(Long urlId, Long userId);
 
     Page<Url> findAllByUserUserId(Long userId, Pageable pageable);
+    Page<Url> findAllByUrlStatus(UrlStatus urlStatus, Pageable pageable);
 
     boolean existsByShortUrl(String shortUrl);
     boolean existsByLongUrl(String longUrl);

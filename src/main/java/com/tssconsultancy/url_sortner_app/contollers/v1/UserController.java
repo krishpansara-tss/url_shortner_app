@@ -2,17 +2,18 @@ package com.tssconsultancy.url_sortner_app.contollers.v1;
 
 import com.tssconsultancy.url_sortner_app.dtos.users.PasswordChangeRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserMeUpdateRequestDto;
-import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserUpdateRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserUsageResponseDto;
-import com.tssconsultancy.url_sortner_app.dtos.users.UserVerificationRequestDto;
 import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
+import com.tssconsultancy.url_sortner_app.security.UserPrincipal;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,86 +30,44 @@ public class UserController {
 
     private final IUserService userService;
 
-    @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto requestDto) {
-        UserResponseDto responseDto = userService.createUser(requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
-    }
-
     @GetMapping("/me")
     public ResponseEntity<UserResponseDto> getMyProfile(
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader) {
-        Long userId = requireUserId(userIdHeader);
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
         return ResponseEntity.ok(userService.getCurrentUser(userId));
     }
 
     @PutMapping("/me")
     public ResponseEntity<UserResponseDto> updateMyProfile(
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader,
+            @AuthenticationPrincipal UserPrincipal currentUser,
             @Valid @RequestBody UserMeUpdateRequestDto updateDto) {
-        Long userId = requireUserId(userIdHeader);
+
+        Long userId = currentUser.getId();
         return ResponseEntity.ok(userService.updateCurrentUser(userId, updateDto));
     }
 
     @PutMapping("/me/password")
     public ResponseEntity<Void> changeMyPassword(
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader,
+            @AuthenticationPrincipal UserPrincipal currentUser,
             @Valid @RequestBody PasswordChangeRequestDto passwordChangeDto) {
-        Long userId = requireUserId(userIdHeader);
+        Long userId = currentUser.getId();
         userService.changePassword(userId, passwordChangeDto);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/me/usage")
     public ResponseEntity<UserUsageResponseDto> getMyUsage(
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader) {
-        Long userId = requireUserId(userIdHeader);
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
         return ResponseEntity.ok(userService.getUserUsage(userId));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDto> updateUser(
-            @PathVariable Long id,
-            @Valid @RequestBody UserUpdateRequestDto updateRequestDto) {
-        return ResponseEntity.ok(userService.updateUser(id, updateRequestDto));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/verify-email")
-    public ResponseEntity<Void> verifyEmail(@PathVariable Long id,
-                                            @Valid @RequestBody UserVerificationRequestDto requestDto) {
-        userService.verifyUserEmail(id, requestDto.getOtpCode());
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/resend-email-verification")
-    public ResponseEntity<Void> resendEmailVerification(@PathVariable Long id) {
-        userService.resendEmailVerificationOtp(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    // ========== PROFILE PICTURE ENDPOINTS ==========
-
     @PostMapping("/me/profile-picture")
     public ResponseEntity<Map<String, String>> uploadProfilePicture(
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader,
+            @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestParam("image") MultipartFile image) {
-        Long userId = requireUserId(userIdHeader);
+
+        Long userId = currentUser.getId();
         String imageUrl = userService.uploadProfilePicture(userId, image);
         
         Map<String, String> response = new HashMap<>();
@@ -128,16 +87,9 @@ public class UserController {
 
     @DeleteMapping("/me/profile-picture")
     public ResponseEntity<Void> deleteProfilePicture(
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader) {
-        Long userId = requireUserId(userIdHeader);
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
         userService.deleteProfilePicture(userId);
         return ResponseEntity.noContent().build();
-    }
-
-    private Long requireUserId(Long userIdHeader) {
-        if (userIdHeader == null) {
-            throw new InvalidOperationException("Missing required header 'X-User-Id'. Please pass 'X-User-Id: <id>' in Postman headers.");
-        }
-        return userIdHeader;
     }
 }

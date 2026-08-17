@@ -32,10 +32,10 @@ public class AuthServiceImpl implements IAuthService {
     private final UserMapper userMapper;
     private final NotificationProcessor notificationProcessor;
     private final JwtTokenProvider jwtTokenProvider;
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserResponseDto register(UserRequestDto requestDto) {
+    public LoginResponseDto register(UserRequestDto requestDto) {
         if (userRepository.existsByEmail(requestDto.getEmail())) {
             throw new EmailAlreadyExistsException(requestDto.getEmail());
         }
@@ -53,8 +53,16 @@ public class AuthServiceImpl implements IAuthService {
         User savedUser = userRepository.save(user);
 
         notificationProcessor.getProcessor("email").sendOtp(savedUser.getEmail());
+        String generatedToken = jwtTokenProvider.generateToken(user);
 
-        return userMapper.toDto(savedUser);
+        return LoginResponseDto.builder()
+                .token(generatedToken)
+                .userId(user.getUserId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .verified(user.isVerified())
+                .role(user.getRole())
+                .build();
     }
 
     @Override
@@ -115,8 +123,10 @@ public class AuthServiceImpl implements IAuthService {
         User user = findUserById(userId);
 
         if (token != null && !token.isBlank()) {
+            String cleanToken = token.startsWith("Bearer ") ? token.substring(7).trim() : token.trim();
+
             TokenBlacklist blacklist = new TokenBlacklist();
-            blacklist.setTokenHash(token);
+            blacklist.setTokenHash(cleanToken);
             blacklist.setUser(user);
             blacklist.setBlacklistedAt(LocalDateTime.now());
             blacklist.setExpiresAt(LocalDateTime.now().plusDays(1));

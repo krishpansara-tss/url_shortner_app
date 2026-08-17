@@ -3,12 +3,14 @@ package com.tssconsultancy.url_sortner_app.contollers.v1;
 import com.tssconsultancy.url_sortner_app.dtos.PageResponse;
 import com.tssconsultancy.url_sortner_app.dtos.payment.PaymentRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.payment.PaymentResponseDto;
+import com.tssconsultancy.url_sortner_app.security.UserPrincipal;
 import com.tssconsultancy.url_sortner_app.services.implementation.PaymentServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,7 +31,7 @@ public class PaymentController {
 
     @GetMapping
     public ResponseEntity<PageResponse<PaymentResponseDto>> getUserPayments( @RequestParam(defaultValue = "0") Integer page,
-                                                                                @RequestParam(defaultValue = "0") Integer size,
+                                                                                @RequestParam(defaultValue = "5") Integer size,
                                                                                 @RequestParam Long userId)
     {
         Pageable pageable = PageRequest.of(page, size);
@@ -57,8 +59,9 @@ public class PaymentController {
     @PostMapping("/{id}/cancel")
     public ResponseEntity<PaymentResponseDto> cancelPayment(
             @PathVariable("id") Long paymentId,
-            @RequestParam Long userId) {
+            @AuthenticationPrincipal UserPrincipal currentUser) {
 
+        Long userId = currentUser.getId();
         PaymentResponseDto response = paymentService.cancelPayment(paymentId, userId);
         return ResponseEntity.ok(response);
     }
@@ -66,8 +69,8 @@ public class PaymentController {
     @GetMapping("/{id}/receipt")
     public ResponseEntity<PaymentResponseDto> getPaymentReceipt(
             @PathVariable("id") Long paymentId,
-            @RequestParam Long userId) {
-
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
         PaymentResponseDto response = paymentService.getPaymentById(paymentId, userId);
         return ResponseEntity.ok(response);
     }

@@ -17,4 +17,6 @@ public interface IUrlService {
     String resolveShortUrlAndRecordVisit(String shortUrl);
     void deleteUrl(Long urlId, Long userId);
     void activateUrlAfterPayment(Long urlId);
+
+    void activeUrl(Long urlId, Long userId);
 }

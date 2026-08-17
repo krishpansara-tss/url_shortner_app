@@ -107,6 +107,16 @@ public class UserServiceImp implements IUserService {
         userRepository.save(user);
     }
 
+
+    @Override
+    public void activateUser(Long id) {
+        User user = findActiveUserById(id);
+
+        user.setStatus(UserStatus.ACTIVE);
+        user.setDeletedAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
+    }
+
     @Override
     public void verifyUserEmail(Long userId, String otpCode) {
         IUserVerificationService.verifyEmailOtp(userId, otpCode);
