@@ -165,10 +165,6 @@ public class PaymentServiceImpl implements IPaymentService {
                 configKey = SystemConfigConstants.PRICE_CUSTOM_ALIAS;
                 fallbackPrice = SystemConfigConstants.FALLBACK_PRICE_CUSTOM_ALIAS;
                 break;
-            case QR_CODE:
-                configKey = SystemConfigConstants.PRICE_QR_CODE;
-                fallbackPrice = SystemConfigConstants.FALLBACK_PRICE_QR_CODE;
-                break;
             default:
                 throw new IllegalArgumentException("Unknown payment type: " + paymentType);
         }

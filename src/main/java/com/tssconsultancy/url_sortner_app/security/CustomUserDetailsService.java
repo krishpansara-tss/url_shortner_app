@@ -24,10 +24,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         String role = user.getRole() != null ? user.getRole().name() : "USER";
 
-        return new org.springframework.security.core.userdetails.User(
+        return new UserPrincipal(
+                user.getUserId(),
                 user.getEmail(),
                 user.getHashedPassword(),
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
         );
     }
 }
+

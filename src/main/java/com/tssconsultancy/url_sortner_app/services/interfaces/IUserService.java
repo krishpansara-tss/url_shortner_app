@@ -29,6 +29,8 @@ public interface IUserService {
     String uploadProfilePicture(Long userId, MultipartFile file);
     String getProfilePicture(Long userId);
     void deleteProfilePicture(Long userId);
+
+    void activateUser(Long id);
 }
 
 

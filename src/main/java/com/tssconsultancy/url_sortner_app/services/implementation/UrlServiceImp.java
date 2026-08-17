@@ -2,6 +2,7 @@ package com.tssconsultancy.url_sortner_app.services.implementation;
 
 import com.tssconsultancy.url_sortner_app.constants.SystemConfigConstants;
 import com.tssconsultancy.url_sortner_app.dtos.PageResponse;
+import com.tssconsultancy.url_sortner_app.dtos.payment.PaymentResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.CustomUrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlResponseDto;
@@ -9,6 +10,7 @@ import com.tssconsultancy.url_sortner_app.dtos.urls.UrlUpdateRequestDto;
 import com.tssconsultancy.url_sortner_app.entities.SystemConfig;
 import com.tssconsultancy.url_sortner_app.entities.Url;
 import com.tssconsultancy.url_sortner_app.entities.User;
+import com.tssconsultancy.url_sortner_app.enums.PaymentType;
 import com.tssconsultancy.url_sortner_app.enums.UrlStatus;
 import com.tssconsultancy.url_sortner_app.enums.UserStatus;
 import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
@@ -36,6 +38,7 @@ public class UrlServiceImp implements IUrlService {
 
     private final UrlRepository urlRepository;
     private final UserRepository userRepository;
+    private final PaymentServiceImpl paymentService;
     private final SystemConfigRepository systemConfigRepository;
     private final UrlMapper urlMapper;
 
@@ -69,16 +72,7 @@ public class UrlServiceImp implements IUrlService {
 
         Integer visitLimit = getSystemConfigVisitLimit();
 
-        String shortUrl;
-        if (dto.getCustomAlias() != null && !dto.getCustomAlias().trim().isEmpty()) {
-            String customAlias = dto.getCustomAlias().trim();
-            if (urlRepository.existsByShortUrl(customAlias)) {
-                throw new CustomAliasExistsException(customAlias);
-            }
-            shortUrl = customAlias;
-        } else {
-            shortUrl = generateUniqueShortAlias();
-        }
+        String shortUrl = generateUniqueShortAlias();
 
         Url url = urlMapper.toEntity(dto);
         url.setLongUrl(longUrl);
@@ -184,6 +178,7 @@ public class UrlServiceImp implements IUrlService {
         Url url = urlRepository.findByShortUrl(shortUrl).orElseThrow(
                 () -> new ShortUrlNotFoundException(shortUrl)
         );
+        System.out.println(url);
 
         if(url.getUrlStatus() != UrlStatus.ACTIVE){
             throw new UrlInactiveException(shortUrl, url.getUrlStatus());
@@ -193,11 +188,12 @@ public class UrlServiceImp implements IUrlService {
             throw new LimitExceededException(shortUrl, url.getVisitLimit());
         }
 
-        url.setRemainingVisits(url.getVisitLimit() - 1);
+        url.setRemainingVisits(url.getRemainingVisits() - 1);
         url.setLastAccessedAt(LocalDateTime.now());
         url.setTotalVisits(url.getTotalVisits() + 1);
 
         urlRepository.save(url);
+        System.out.println(url);
 
         return url.getLongUrl();
     }
@@ -208,23 +204,14 @@ public class UrlServiceImp implements IUrlService {
                 ()-> new ResourceNotFoundException("`URL not found or you do not have permission to access this URL.")
         );
 
+        if (url.getUrlStatus() == UrlStatus.ACTIVE) {
+            throw new InvalidOperationException("You can Only delete activated URLS.");
+        }
+
         url.setUrlStatus(UrlStatus.DELETED);
         url.setDeletedAt(LocalDateTime.now());
 
         urlRepository.save(url);
-    }
-
-    private Integer getSystemConfigVisitLimit() {
-        Optional<SystemConfig> configOpt = systemConfigRepository.findByConfigKey(SystemConfigConstants.MAX_VISITS_PER_FREE_URL);
-        if (configOpt.isEmpty()) {
-            return SystemConfigConstants.FALLBACK_MAX_VISITS_PER_FREE_URL;
-        }
-
-        try {
-            return Integer.parseInt(configOpt.get().getConfigValue());
-        } catch (NumberFormatException e) {
-            return SystemConfigConstants.FALLBACK_MAX_VISITS_PER_FREE_URL;
-        }
     }
 
     @Override
@@ -241,6 +228,24 @@ public class UrlServiceImp implements IUrlService {
         urlRepository.save(url);
     }
 
+    @Override
+    public void activeUrl(Long urlId, Long userId) {
+        Url url = urlRepository.findByUrlIdAndUserUserId(urlId, userId).orElseThrow(
+                ()-> new ResourceNotFoundException("`URL not found or you do not have permission to access this URL.")
+        );
+
+        if(url.getUrlStatus() != UrlStatus.DELETED){
+            throw new InvalidOperationException("You can Only activate Deleted URLS.");
+        }
+        url.setUrlStatus(UrlStatus.ACTIVE);
+        url.setDeletedAt(LocalDateTime.now());
+
+        urlRepository.save(url);
+    }
+
+    public PaymentResponseDto urlRenew(Long urlId, Long userId){
+        return paymentService.initiatePayment(userId, urlId, PaymentType.URL_RENEWAL);
+    }
 
     private String generateUniqueShortAlias() {
         int maxAttempts = 10;
@@ -258,5 +263,18 @@ public class UrlServiceImp implements IUrlService {
             return "https://" + url;
         }
         return url;
+    }
+
+    private Integer getSystemConfigVisitLimit() {
+        Optional<SystemConfig> configOpt = systemConfigRepository.findByConfigKey(SystemConfigConstants.MAX_VISITS_PER_FREE_URL);
+        if (configOpt.isEmpty()) {
+            return SystemConfigConstants.FALLBACK_MAX_VISITS_PER_FREE_URL;
+        }
+
+        try {
+            return Integer.parseInt(configOpt.get().getConfigValue());
+        } catch (NumberFormatException e) {
+            return SystemConfigConstants.FALLBACK_MAX_VISITS_PER_FREE_URL;
+        }
     }
 }

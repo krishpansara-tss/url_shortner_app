@@ -12,6 +12,7 @@ import java.util.List;
 @Table(name = "urls")
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class Url {

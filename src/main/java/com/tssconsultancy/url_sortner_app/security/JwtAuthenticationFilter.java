@@ -1,5 +1,6 @@
 package com.tssconsultancy.url_sortner_app.security;
 
+import com.tssconsultancy.url_sortner_app.repositories.TokenBlacklistRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,22 +23,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistRepository tokenBlacklistRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String token = resolveToken(request);
+        try {
+            String token = resolveToken(request);
 
-        if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
-            String email = jwtTokenProvider.getEmailFromToken(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            if (StringUtils.hasText(token)
+                    && jwtTokenProvider.validateToken(token)
+                    && !tokenBlacklistRepository.existsByTokenHash(token)) {
+                String email = jwtTokenProvider.getEmailFromToken(token);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
+        } catch (Exception e) {
+            logger.error("Could not set user authentication in security context", e);
         }
 
         filterChain.doFilter(request, response);

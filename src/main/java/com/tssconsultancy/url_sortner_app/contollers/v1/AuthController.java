@@ -4,11 +4,13 @@ import com.tssconsultancy.url_sortner_app.dtos.auth.*;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserResponseDto;
 import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
+import com.tssconsultancy.url_sortner_app.security.UserPrincipal;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +26,9 @@ public class  AuthController {
     private final IAuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDto> register(@Valid @RequestBody UserRequestDto requestDto) {
-        UserResponseDto response = authService.register(requestDto);
+    public ResponseEntity<LoginResponseDto> register(@Valid @RequestBody UserRequestDto requestDto) {
+        System.out.println("hii");
+        LoginResponseDto response = authService.register(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -52,18 +55,11 @@ public class  AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<UserResponseDto> getMe(
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader) {
-        Long userId = requireUserId(userIdHeader);
-        UserResponseDto response = authService.getMe(userId);
-        return ResponseEntity.ok(response);
-    }
-
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout(@RequestHeader(value = "X-User-Id", required = false) Long userIdHeader,
+    public ResponseEntity<Map<String, String>> logout(
+            @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestHeader(value = "Authorization", required = false) String token) {
-        Long userId = requireUserId(userIdHeader);
+        Long userId = currentUser != null ? currentUser.getId() : null;
         authService.logout(userId, token);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Logged out successfully");
@@ -72,8 +68,8 @@ public class  AuthController {
 
     @PostMapping("/logout-all")
     public ResponseEntity<Map<String, String>> logoutAll(
-            @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader) {
-        Long userId = requireUserId(userIdHeader);
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser != null ? currentUser.getId() : null;
         authService.logoutAll(userId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Logged out from all devices successfully");
@@ -94,12 +90,5 @@ public class  AuthController {
         Map<String, String> response = new HashMap<>();
         response.put("message", "Password reset successfully");
         return ResponseEntity.ok(response);
-    }
-
-    private Long requireUserId(Long userIdHeader) {
-        if (userIdHeader == null) {
-            throw new InvalidOperationException("Missing required header 'X-User-Id'. Please pass 'X-User-Id: <id>' in Postman headers.");
-        }
-        return userIdHeader;
     }
 }
