@@ -23,7 +23,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private final StringRedisTemplate redisTemplate;
 
-    private static final int MAX_REQUESTS_PER_MINUTE = 60;
+    private static final int MAX_REQUESTS_PER_MINUTE = 10;
     private static final Duration WINDOW_DURATION = Duration.ofMinutes(1);
 
     @Override
