@@ -55,23 +55,9 @@ public class UrlServiceImp implements IUrlService {
             throw new LongUrlExistsException(longUrl);
         }
 
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException(userId)
-        );
-
-        if(!user.isVerified()){
-            throw new InvalidOperationException("User email is not verified. ");
-        }
-        if(user.getStatus() != UserStatus.ACTIVE){
-            throw new InvalidOperationException("User account is not active.");
-        }
-
-        if (user.getRemainingUrlSlots() != null && user.getRemainingUrlSlots() <= 0) {
-            throw new IllegalStateException("User has exceeded their URL creation limit");
-        }
+        User user = verifyUser(userId);
 
         Integer visitLimit = getSystemConfigVisitLimit();
-
         String shortUrl = generateUniqueShortAlias();
 
         Url url = urlMapper.toEntity(dto);
@@ -81,6 +67,7 @@ public class UrlServiceImp implements IUrlService {
         url.setUrlStatus(UrlStatus.ACTIVE);
         url.setVisitLimit(visitLimit);
         url.setRemainingVisits(visitLimit);
+        url.setExpiresAt(LocalDateTime.now().plusYears(1));
         url.setTotalVisits(0);
 
         Url savedUrl = urlRepository.save(url);
@@ -94,6 +81,7 @@ public class UrlServiceImp implements IUrlService {
     }
 
     @Override
+    @Transactional
     public UrlResponseDto createCustomUrl(CustomUrlRequestDto dto, Long userId) {
         if (dto == null || dto.getLongUrl() == null || dto.getLongUrl().trim().isEmpty()) {
             throw new IllegalArgumentException("Long URL must not be blank");
@@ -109,16 +97,7 @@ public class UrlServiceImp implements IUrlService {
             throw new CustomAliasExistsException(customAlias);
         }
 
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException(userId)
-        );
-
-        if(!user.isVerified()){
-            throw new InvalidOperationException("User email is not verified. ");
-        }
-        if(user.getStatus() != UserStatus.ACTIVE){
-            throw new InvalidOperationException("User account is not active.");
-        }
+        User user = verifyUser(userId);
 
         Integer visitLimit = getSystemConfigVisitLimit();
 
@@ -142,15 +121,10 @@ public class UrlServiceImp implements IUrlService {
     @Override
     public UrlResponseDto getUrlByIdAndUserId(Long urlId, Long userId) {
         Url url = urlRepository.findByUrlIdAndUserUserId(urlId, userId).orElseThrow(
-                () -> new ResourceNotFoundException("`URL not found or you do not have permission to access this URL.")
+                () -> new ResourceNotFoundException("URL not found or you do not have permission to access this URL.")
         );
 
         return urlMapper.toResponse(url);
-    }
-
-    @Override
-    public UrlResponseDto updateUrl(Long urlId, Long userId, UrlUpdateRequestDto dto) {
-        return null;
     }
 
     @Override
@@ -178,9 +152,8 @@ public class UrlServiceImp implements IUrlService {
         Url url = urlRepository.findByShortUrl(shortUrl).orElseThrow(
                 () -> new ShortUrlNotFoundException(shortUrl)
         );
-        System.out.println(url);
 
-        if(url.getExpiresAt().isBefore(LocalDateTime.now())){
+        if(url.getExpiresAt() != null && url.getExpiresAt().isBefore(LocalDateTime.now())){
             throw new UrlInactiveException(shortUrl, url.getUrlStatus());
         }
 
@@ -197,7 +170,6 @@ public class UrlServiceImp implements IUrlService {
         url.setTotalVisits(url.getTotalVisits() + 1);
 
         urlRepository.save(url);
-        System.out.println(url);
 
         return url.getLongUrl();
     }
@@ -205,11 +177,11 @@ public class UrlServiceImp implements IUrlService {
     @Override
     public void deleteUrl(Long urlId, Long userId) {
         Url url = urlRepository.findByUrlIdAndUserUserId(urlId, userId).orElseThrow(
-                ()-> new ResourceNotFoundException("`URL not found or you do not have permission to access this URL.")
+                ()-> new ResourceNotFoundException("URL not found or you do not have permission to access this URL.")
         );
 
-        if (url.getUrlStatus() == UrlStatus.ACTIVE) {
-            throw new InvalidOperationException("You can Only delete activated URLS.");
+        if (url.getUrlStatus() == UrlStatus.DELETED) {
+            throw new InvalidOperationException("URL is already deleted.");
         }
 
         url.setUrlStatus(UrlStatus.DELETED);
@@ -221,14 +193,22 @@ public class UrlServiceImp implements IUrlService {
     @Override
     public void activeUrl(Long urlId, Long userId) {
         Url url = urlRepository.findByUrlIdAndUserUserId(urlId, userId).orElseThrow(
-                ()-> new ResourceNotFoundException("`URL not found or you do not have permission to access this URL.")
+                ()-> new ResourceNotFoundException("URL not found or you do not have permission to access this URL.")
         );
 
-        if(url.getUrlStatus() != UrlStatus.DELETED){
-            throw new InvalidOperationException("You can Only activate Deleted URLS.");
+        if (url.getUrlStatus() == UrlStatus.DELETED) {
+            throw new InvalidOperationException("Deleted URLs cannot be activated.");
         }
+
+        if (url.getUrlStatus() == UrlStatus.ACTIVE) {
+            throw new InvalidOperationException("URL is already active.");
+        }
+
+        if (url.getUrlStatus() == UrlStatus.EXPIRED) {
+            throw new InvalidOperationException("Expired URLs must be renewed before activation.");
+        }
+
         url.setUrlStatus(UrlStatus.ACTIVE);
-        url.setDeletedAt(LocalDateTime.now());
 
         urlRepository.save(url);
     }
@@ -267,5 +247,24 @@ public class UrlServiceImp implements IUrlService {
         } catch (NumberFormatException e) {
             return SystemConfigConstants.FALLBACK_MAX_VISITS_PER_FREE_URL;
         }
+    }
+
+    private User verifyUser(Long userId){
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new UserNotFoundException(userId)
+        );
+
+        if(!user.isVerified()){
+            throw new InvalidOperationException("User email is not verified. ");
+        }
+        if(user.getStatus() != UserStatus.ACTIVE){
+            throw new InvalidOperationException("User account is not active.");
+        }
+
+        if (user.getRemainingUrlSlots() != null && user.getRemainingUrlSlots() <= 0) {
+            throw new IllegalStateException("User has exceeded their URL creation limit");
+        }
+
+        return user;
     }
 }

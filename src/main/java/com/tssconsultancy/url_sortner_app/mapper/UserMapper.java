@@ -1,4 +1,4 @@
-package com.tssconsultancy.url_sortner_app.mappers;
+package com.tssconsultancy.url_sortner_app.mapper;
 
 import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserResponseDto;
