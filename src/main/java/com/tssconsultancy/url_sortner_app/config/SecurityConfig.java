@@ -2,6 +2,7 @@ package com.tssconsultancy.url_sortner_app.config;
 
 import com.tssconsultancy.url_sortner_app.security.JwtAuthenticationEntryPoint;
 import com.tssconsultancy.url_sortner_app.security.JwtAuthenticationFilter;
+import com.tssconsultancy.url_sortner_app.security.RateLimitingFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final RateLimitingFilter rateLimitingFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
@@ -44,17 +46,21 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v1/auth/register",
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/verify-email",
-                                "/api/v1/auth/forgot-password",
-                                "/api/v1/auth/reset-password"
+                            "/api/v1/auth/register",
+                            "/api/v1/auth/verify-email",
+                            "/api/v1/auth/resend-verification-otp",
+                            "/api/v1/auth/login",
+                            "/api/v1/auth/forgot-password",
+                            "/api/v1/auth/reset-password"
                         ).permitAll()
+                        .requestMatchers("/api/v1/urls/redirect/**").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 }
+

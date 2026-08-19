@@ -5,7 +5,7 @@ import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserResponseDto;
 
 public interface IAuthService {
-    UserResponseDto register(UserRequestDto requestDto);
+    LoginResponseDto register(UserRequestDto requestDto);
 
     void verifyEmail(VerifyEmailRequestDto requestDto);
 

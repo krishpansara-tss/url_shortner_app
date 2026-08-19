@@ -2,8 +2,6 @@ package com.tssconsultancy.url_sortner_app.exceptions;
 
 import com.tssconsultancy.url_sortner_app.dtos.ErrorResponse;
 import com.tssconsultancy.url_sortner_app.exceptions.base.*;
-import com.tssconsultancy.url_sortner_app.exceptions.base.DuplicateResourceException;
-import com.tssconsultancy.url_sortner_app.exceptions.base.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

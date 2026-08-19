@@ -7,17 +7,19 @@ import com.tssconsultancy.url_sortner_app.dtos.urls.UrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlUpdateRequestDto;
 import com.tssconsultancy.url_sortner_app.enums.PaymentType;
+import com.tssconsultancy.url_sortner_app.security.UserPrincipal;
 import com.tssconsultancy.url_sortner_app.services.implementation.PaymentServiceImpl;
 import com.tssconsultancy.url_sortner_app.services.implementation.UrlServiceImp;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/urls")
@@ -27,8 +29,9 @@ public class UrlController {
     private final PaymentServiceImpl paymentService;
 
     @PostMapping
-    public ResponseEntity<UrlResponseDto> generateShortUrl(@RequestBody UrlRequestDto dto,
-                                                           @RequestParam Long userId){
+    public ResponseEntity<UrlResponseDto> generateShortUrl(@RequestBody @Valid UrlRequestDto dto,
+                                                           @AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
         UrlResponseDto response = urlService.createShortUrl(dto, userId);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -46,8 +49,10 @@ public class UrlController {
 
     @PostMapping("/custom")
     public ResponseEntity<PaymentResponseDto> createCustomUrl(
-            @RequestBody CustomUrlRequestDto dto,
-            @RequestParam Long userId) {
+            @RequestBody @Valid CustomUrlRequestDto dto,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+
+        Long userId = currentUser.getId();
 
         UrlResponseDto reservedUrl = urlService.createCustomUrl(dto, userId);
 
@@ -58,9 +63,11 @@ public class UrlController {
 
     @GetMapping
     public ResponseEntity<PageResponse<UrlResponseDto>> getUserUrls(
-            @RequestParam(defaultValue = "5") Integer page,
-            @RequestParam(defaultValue = "0") Integer size,
-            @RequestParam Long userId) {
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer size,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        System.out.println("hi");
+        Long userId = currentUser.getId();
         Pageable pageable = PageRequest.of(page, size);
         PageResponse<UrlResponseDto> urls = urlService.getAllUrlByUserId(userId, pageable);
         return ResponseEntity.ok(urls);
@@ -69,7 +76,8 @@ public class UrlController {
     @GetMapping("/{id}")
     public ResponseEntity<UrlResponseDto> getUrlById(
             @PathVariable("id") Long urlId,
-            @RequestParam Long userId) {
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
 
         UrlResponseDto response = urlService.getUrlByIdAndUserId(urlId, userId);
         return ResponseEntity.ok(response);
@@ -79,23 +87,41 @@ public class UrlController {
     public ResponseEntity<UrlResponseDto> updateUrl(
             @PathVariable("id") Long urlId,
             @RequestBody UrlUpdateRequestDto dto,
-            @RequestParam Long userId) {
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
 
         UrlResponseDto response = urlService.updateUrl(urlId, userId, dto);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteUrl(
             @PathVariable("id") Long urlId,
-            @RequestParam Long userId) {
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
 
         urlService.deleteUrl(urlId, userId);
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/active/{id}")
+    public ResponseEntity<Void> activeUrl(
+            @PathVariable("id") Long urlId,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
 
-    // TODO: URL STATUS
-    // TODO: URL STATS
+        urlService.activeUrl(urlId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
     // TODO: URL RENEW
+    public ResponseEntity<PaymentResponseDto> getUrlStatus(
+            @PathVariable("id") Long urlId,
+            @AuthenticationPrincipal UserPrincipal currentUser
+    ){
+        Long userId = currentUser.getId();
+        PaymentResponseDto response = urlService.urlRenew(urlId, userId);
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
 }

@@ -15,7 +15,7 @@ public final class SystemConfigConstants {
     public static final String PRICE_CUSTOM_ALIAS = "PRICE_CUSTOM_ALIAS";
 
     // Fallback Default Values
-    public static final int FALLBACK_MAX_VISITS_PER_FREE_URL = 100;
+    public static final int FALLBACK_MAX_VISITS_PER_FREE_URL = 105;
     public static final double FALLBACK_RENEWAL_FEE = 50;
     public static final int FALLBACK_RENEWAL_VISITS_GRANTED = 500;
     public static final int FALLBACK_FREE_URL_QUOTA_PER_USER = 10;

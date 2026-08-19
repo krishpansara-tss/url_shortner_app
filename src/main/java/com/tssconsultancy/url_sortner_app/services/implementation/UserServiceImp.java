@@ -1,25 +1,18 @@
 package com.tssconsultancy.url_sortner_app.services.implementation;
 
-import com.tssconsultancy.url_sortner_app.dtos.users.PasswordChangeRequestDto;
-import com.tssconsultancy.url_sortner_app.dtos.users.UserMeUpdateRequestDto;
-import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
-import com.tssconsultancy.url_sortner_app.dtos.users.UserResponseDto;
-import com.tssconsultancy.url_sortner_app.dtos.users.UserUpdateRequestDto;
-import com.tssconsultancy.url_sortner_app.dtos.users.UserUsageResponseDto;
+import com.tssconsultancy.url_sortner_app.dtos.users.*;
 import com.tssconsultancy.url_sortner_app.entities.User;
 import com.tssconsultancy.url_sortner_app.enums.UrlStatus;
 import com.tssconsultancy.url_sortner_app.enums.UserStatus;
-import com.tssconsultancy.url_sortner_app.enums.UserTypes;
 import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
 import com.tssconsultancy.url_sortner_app.exceptions.base.ResourceNotFoundException;
 import com.tssconsultancy.url_sortner_app.exceptions.derived.EmailAlreadyExistsException;
-import com.tssconsultancy.url_sortner_app.exceptions.derived.UserEmailNotFoundException;
 import com.tssconsultancy.url_sortner_app.mappers.UserMapper;
 import com.tssconsultancy.url_sortner_app.repositories.UrlRepository;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
+import com.tssconsultancy.url_sortner_app.services.ImageUploadService;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IUserService;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IUserVerificationService;
-import com.tssconsultancy.url_sortner_app.services.ImageUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,27 +31,6 @@ public class UserServiceImp implements IUserService {
     private final IUserVerificationService IUserVerificationService;
     private final ImageUploadService imageUploadService;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    @Override
-    public UserResponseDto createUser(UserRequestDto requestDto) {
-        if (userRepository.existsByEmail(requestDto.getEmail())) {
-            throw new EmailAlreadyExistsException(requestDto.getEmail());
-        }
-
-        User user = new User(
-                requestDto.getName(),
-                requestDto.getEmail(),
-                passwordEncoder.encode(requestDto.getPassword())
-        );
-        user.setRole(UserTypes.USER);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRemainingUrlSlots(100);
-        user.setVerified(false);
-
-        User saved = userRepository.save(user);
-        IUserVerificationService.sendEmailVerificationOtp(saved);
-        return userMapper.toDto(saved);
-    }
 
     @Override
     public List<UserResponseDto> getAllUsers() {
@@ -107,14 +79,14 @@ public class UserServiceImp implements IUserService {
         userRepository.save(user);
     }
 
-    @Override
-    public void verifyUserEmail(Long userId, String otpCode) {
-        IUserVerificationService.verifyEmailOtp(userId, otpCode);
-    }
 
     @Override
-    public void resendEmailVerificationOtp(Long userId) {
-        IUserVerificationService.resendEmailVerificationOtp(userId);
+    public void activateUser(Long id) {
+        User user = findActiveUserById(id);
+
+        user.setStatus(UserStatus.ACTIVE);
+        user.setDeletedAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
     }
 
     @Override
@@ -122,18 +94,6 @@ public class UserServiceImp implements IUserService {
         User user = findActiveUserById(userId);
         return userMapper.toDto(user);
     }
-
-    @Override
-    public UserResponseDto getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email " + email));
-
-        if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new ResourceNotFoundException("User not found with email " + email);
-        }
-        return userMapper.toDto(user);
-    }
-
 
     @Override
     public UserResponseDto updateCurrentUser(Long userId, UserMeUpdateRequestDto updateDto) {

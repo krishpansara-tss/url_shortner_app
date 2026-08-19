@@ -2,10 +2,9 @@ package com.tssconsultancy.url_sortner_app.dtos.users;
 
 import com.tssconsultancy.url_sortner_app.enums.UserStatus;
 import com.tssconsultancy.url_sortner_app.enums.UserTypes;
-import jakarta.validation.constraints.Email;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 

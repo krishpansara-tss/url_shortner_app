@@ -1,6 +1,7 @@
 package com.tssconsultancy.url_sortner_app.services.interfaces;
 
 import com.tssconsultancy.url_sortner_app.dtos.PageResponse;
+import com.tssconsultancy.url_sortner_app.dtos.payment.PaymentResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.CustomUrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlResponseDto;
@@ -17,4 +18,7 @@ public interface IUrlService {
     String resolveShortUrlAndRecordVisit(String shortUrl);
     void deleteUrl(Long urlId, Long userId);
     void activateUrlAfterPayment(Long urlId);
+
+    PaymentResponseDto urlRenew(Long urlId, Long userId);
+    void activeUrl(Long urlId, Long userId);
 }

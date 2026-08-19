@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -68,9 +69,11 @@ public class PaymentServiceImpl implements IPaymentService {
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
             throw new RuntimeException("Only PENDING payments can be processed");
         }
+        String transactionId = "TXN-" + UUID.randomUUID();
 
         payment.setPaymentStatus(PaymentStatus.SUCCESS);
         payment.setCompletedAt(LocalDateTime.now());
+        payment.setTransactionId(transactionId);
 
         fulfillPaymentBenefits(payment);
 
@@ -164,10 +167,6 @@ public class PaymentServiceImpl implements IPaymentService {
             case CUSTOM_ALIAS:
                 configKey = SystemConfigConstants.PRICE_CUSTOM_ALIAS;
                 fallbackPrice = SystemConfigConstants.FALLBACK_PRICE_CUSTOM_ALIAS;
-                break;
-            case QR_CODE:
-                configKey = SystemConfigConstants.PRICE_QR_CODE;
-                fallbackPrice = SystemConfigConstants.FALLBACK_PRICE_QR_CODE;
                 break;
             default:
                 throw new IllegalArgumentException("Unknown payment type: " + paymentType);
