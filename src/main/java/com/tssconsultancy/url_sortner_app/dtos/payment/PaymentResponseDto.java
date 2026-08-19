@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 public class PaymentResponseDto {
     private Long paymentId;
+    private String transactionId;
     private Double amount;
 
     private PaymentType paymentType;

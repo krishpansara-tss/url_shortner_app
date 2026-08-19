@@ -3,6 +3,7 @@ package com.tssconsultancy.url_sortner_app.services.implementation;
 import com.tssconsultancy.url_sortner_app.constants.SystemConfigConstants;
 import com.tssconsultancy.url_sortner_app.dtos.systemconfig.SystemConfigRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.systemconfig.SystemConfigResponseDto;
+import com.tssconsultancy.url_sortner_app.dtos.systemconfig.SystemConfigUserResponseDto;
 import com.tssconsultancy.url_sortner_app.entities.SystemConfig;
 import com.tssconsultancy.url_sortner_app.repositories.SystemConfigRepository;
 import com.tssconsultancy.url_sortner_app.services.interfaces.ISystemConfigService;
@@ -24,6 +25,17 @@ public class SystemConfigServiceImpl implements ISystemConfigService {
     @Transactional(readOnly = true)
     public SystemConfigResponseDto getSystemConfiguration() {
         SystemConfigResponseDto response = new SystemConfigResponseDto();
+        response.setMaxVisitsPerFreeUrl(getIntConfig(SystemConfigConstants.MAX_VISITS_PER_FREE_URL, SystemConfigConstants.FALLBACK_MAX_VISITS_PER_FREE_URL));
+        response.setRenewalFee(getDoubleConfig(SystemConfigConstants.RENEWAL_FEE, SystemConfigConstants.FALLBACK_RENEWAL_FEE));
+        response.setRenewalVisitsGranted(getIntConfig(SystemConfigConstants.RENEWAL_VISITS_GRANTED, SystemConfigConstants.FALLBACK_RENEWAL_VISITS_GRANTED));
+        response.setFreeUrlQuotaPerUser(getIntConfig(SystemConfigConstants.FREE_URL_QUOTA_PER_USER, SystemConfigConstants.FALLBACK_FREE_URL_QUOTA_PER_USER));
+        response.setPricePerAdditionalSlot(getDoubleConfig(SystemConfigConstants.PRICE_PER_ADDITIONAL_SLOT, SystemConfigConstants.FALLBACK_PRICE_PER_ADDITIONAL_SLOT));
+        return response;
+    }
+
+    @Override
+    public SystemConfigUserResponseDto getSystemUserConfiguration() {
+        SystemConfigUserResponseDto response = new SystemConfigUserResponseDto();
         response.setMaxVisitsPerFreeUrl(getIntConfig(SystemConfigConstants.MAX_VISITS_PER_FREE_URL, SystemConfigConstants.FALLBACK_MAX_VISITS_PER_FREE_URL));
         response.setRenewalFee(getDoubleConfig(SystemConfigConstants.RENEWAL_FEE, SystemConfigConstants.FALLBACK_RENEWAL_FEE));
         response.setRenewalVisitsGranted(getIntConfig(SystemConfigConstants.RENEWAL_VISITS_GRANTED, SystemConfigConstants.FALLBACK_RENEWAL_VISITS_GRANTED));

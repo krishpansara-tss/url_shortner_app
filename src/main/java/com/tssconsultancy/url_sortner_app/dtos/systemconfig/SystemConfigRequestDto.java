@@ -2,7 +2,8 @@ package com.tssconsultancy.url_sortner_app.dtos.systemconfig;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PositiveOrZero;
-import lombok.*;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
 @RequiredArgsConstructor

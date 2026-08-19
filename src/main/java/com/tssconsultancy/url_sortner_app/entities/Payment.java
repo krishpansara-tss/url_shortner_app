@@ -21,6 +21,9 @@ public class Payment {
 
     private Double amount;
 
+    @Column(unique = true)
+    private String transactionId;
+
     @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
 
