@@ -1,6 +1,12 @@
 package com.tssconsultancy.url_sortner_app.contollers.v1;
 
-import com.tssconsultancy.url_sortner_app.dtos.auth.*;
+import com.tssconsultancy.url_sortner_app.dtos.ResendVerificationOtpRequestDto;
+import com.tssconsultancy.url_sortner_app.dtos.auth.ForgotPasswordRequestDto;
+import com.tssconsultancy.url_sortner_app.dtos.auth.LoginRequestDto;
+import com.tssconsultancy.url_sortner_app.dtos.auth.LoginResponseDto;
+import com.tssconsultancy.url_sortner_app.dtos.auth.ResetPasswordRequestDto;
+import com.tssconsultancy.url_sortner_app.dtos.auth.VerifyEmailRequestDto;
+import com.tssconsultancy.url_sortner_app.dtos.MessageResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
 import com.tssconsultancy.url_sortner_app.security.UserPrincipal;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IAuthService;
@@ -12,80 +18,109 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Validated
-public class  AuthController {
+public class AuthController {
 
     private final IAuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<LoginResponseDto> register(@Valid @RequestBody UserRequestDto requestDto) {
         LoginResponseDto response = authService.register(requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     @PostMapping("/verify-email")
-    public ResponseEntity<Map<String, String>> verifyEmail(@Valid @RequestBody VerifyEmailRequestDto requestDto) {
+    public ResponseEntity<MessageResponseDto> verifyEmail(@Valid @RequestBody VerifyEmailRequestDto requestDto) {
         authService.verifyEmail(requestDto);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Email verified successfully");
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(
+                new MessageResponseDto(
+                        "Email verified successfully"
+                )
+        );
     }
 
     @PostMapping("/resend-verification-otp")
-    public ResponseEntity<Map<String, String>> resendVerificationOtp(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        authService.resendVerificationOtp(email);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Verification OTP sent successfully");
-        return ResponseEntity.ok(response);
+    public ResponseEntity<MessageResponseDto> resendVerificationOtp(
+            @Valid @RequestBody ResendVerificationOtpRequestDto requestDto
+    ) {
+        authService.resendVerificationOtp(requestDto.getEmail());
+
+        return ResponseEntity.ok(
+                new MessageResponseDto(
+                        "Verification OTP sent successfully"
+                )
+        );
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto requestDto) {
         LoginResponseDto response = authService.login(requestDto);
+
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout(
-            @AuthenticationPrincipal UserPrincipal currentUser,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ResponseEntity<MessageResponseDto> logout(@AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestHeader(value = "Authorization",required = false) String token)
+    {
         Long userId = currentUser != null ? currentUser.getId() : null;
+
         authService.logout(userId, token);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Logged out successfully");
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(
+                new MessageResponseDto(
+                        "Logged out successfully"
+                )
+        );
     }
 
     @PostMapping("/logout-all")
-    public ResponseEntity<Map<String, String>> logoutAll(
-            @AuthenticationPrincipal UserPrincipal currentUser) {
-        Long userId = currentUser != null ? currentUser.getId() : null;
+    public ResponseEntity<MessageResponseDto> logoutAll(
+            @AuthenticationPrincipal UserPrincipal currentUser
+    ) {
+        Long userId = currentUser != null
+                ? currentUser.getId()
+                : null;
+
         authService.logoutAll(userId);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Logged out from all devices successfully");
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(
+                new MessageResponseDto(
+                        "Logged out from all devices successfully"
+                )
+        );
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDto requestDto) {
+    public ResponseEntity<MessageResponseDto> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequestDto requestDto
+    ) {
         authService.forgotPassword(requestDto);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Password reset OTP sent to your email");
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(
+                new MessageResponseDto(
+                        "Password reset OTP sent to your email"
+                )
+        );
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequestDto requestDto) {
+    public ResponseEntity<MessageResponseDto> resetPassword(
+            @Valid @RequestBody ResetPasswordRequestDto requestDto
+    ) {
         authService.resetPassword(requestDto);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Password reset successfully");
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(
+                new MessageResponseDto(
+                        "Password reset successfully"
+                )
+        );
     }
 }
