@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Payment {
 
     @Id
@@ -21,6 +20,9 @@ public class Payment {
     private Long paymentId;
 
     private Double amount;
+
+    @Column(unique = true)
+    private String transactionId;
 
     @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
