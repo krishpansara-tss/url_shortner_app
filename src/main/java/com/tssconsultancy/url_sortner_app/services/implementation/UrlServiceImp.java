@@ -180,6 +180,10 @@ public class UrlServiceImp implements IUrlService {
         );
         System.out.println(url);
 
+        if(url.getExpiresAt().isBefore(LocalDateTime.now())){
+            throw new UrlInactiveException(shortUrl, url.getUrlStatus());
+        }
+
         if(url.getUrlStatus() != UrlStatus.ACTIVE){
             throw new UrlInactiveException(shortUrl, url.getUrlStatus());
         }
@@ -215,20 +219,6 @@ public class UrlServiceImp implements IUrlService {
     }
 
     @Override
-    public void activateUrlAfterPayment(Long urlId) {
-        Url url = urlRepository.findById(urlId).orElseThrow(
-                () -> new ResourceNotFoundException("URL not found for activation")
-        );
-
-        if (url.getUrlStatus() == UrlStatus.ACTIVE) {
-            return;
-        }
-
-        url.setUrlStatus(UrlStatus.ACTIVE);
-        urlRepository.save(url);
-    }
-
-    @Override
     public void activeUrl(Long urlId, Long userId) {
         Url url = urlRepository.findByUrlIdAndUserUserId(urlId, userId).orElseThrow(
                 ()-> new ResourceNotFoundException("`URL not found or you do not have permission to access this URL.")
@@ -243,6 +233,7 @@ public class UrlServiceImp implements IUrlService {
         urlRepository.save(url);
     }
 
+    @Override
     public PaymentResponseDto urlRenew(Long urlId, Long userId){
         return paymentService.initiatePayment(userId, urlId, PaymentType.URL_RENEWAL);
     }

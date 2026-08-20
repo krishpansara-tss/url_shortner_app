@@ -2,30 +2,27 @@ package com.tssconsultancy.url_sortner_app.services.implementation;
 
 import com.tssconsultancy.url_sortner_app.dtos.users.PasswordChangeRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserMeUpdateRequestDto;
-import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserUpdateRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserUsageResponseDto;
 import com.tssconsultancy.url_sortner_app.entities.User;
 import com.tssconsultancy.url_sortner_app.enums.UrlStatus;
 import com.tssconsultancy.url_sortner_app.enums.UserStatus;
-import com.tssconsultancy.url_sortner_app.enums.UserTypes;
 import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
 import com.tssconsultancy.url_sortner_app.exceptions.base.ResourceNotFoundException;
 import com.tssconsultancy.url_sortner_app.exceptions.derived.EmailAlreadyExistsException;
-import com.tssconsultancy.url_sortner_app.exceptions.derived.UserEmailNotFoundException;
 import com.tssconsultancy.url_sortner_app.mappers.UserMapper;
 import com.tssconsultancy.url_sortner_app.repositories.UrlRepository;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
-import com.tssconsultancy.url_sortner_app.services.interfaces.IUserService;
-import com.tssconsultancy.url_sortner_app.services.interfaces.IUserVerificationService;
 import com.tssconsultancy.url_sortner_app.services.ImageUploadService;
+import com.tssconsultancy.url_sortner_app.services.interfaces.IUserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,67 +32,53 @@ public class UserServiceImp implements IUserService {
     private final UserRepository userRepository;
     private final UrlRepository urlRepository;
     private final UserMapper userMapper;
-    private final IUserVerificationService IUserVerificationService;
     private final ImageUploadService imageUploadService;
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserResponseDto createUser(UserRequestDto requestDto) {
-        if (userRepository.existsByEmail(requestDto.getEmail())) {
-            throw new EmailAlreadyExistsException(requestDto.getEmail());
-        }
+    public List<UserResponseDto> getAllUsers()
+    {
+        List<UserResponseDto> userResponses = new ArrayList<>();
 
-        User user = new User(
-                requestDto.getName(),
-                requestDto.getEmail(),
-                passwordEncoder.encode(requestDto.getPassword())
-        );
-        user.setRole(UserTypes.USER);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRemainingUrlSlots(100);
-        user.setVerified(false);
-
-        User saved = userRepository.save(user);
-        IUserVerificationService.sendEmailVerificationOtp(saved);
-        return userMapper.toDto(saved);
-    }
-
-    @Override
-    public List<UserResponseDto> getAllUsers() {
-        List<UserResponseDto> userResponses = new java.util.ArrayList<>();
-        for (User user : userRepository.findAll()) {
-            if (user.getStatus() == UserStatus.ACTIVE) {
+        for (User user : userRepository.findAll())
+        {
+            if (user.getStatus() == UserStatus.ACTIVE)
+            {
                 userResponses.add(userMapper.toDto(user));
             }
         }
+
         return userResponses;
     }
 
     @Override
-    public UserResponseDto getUserById(Long id) {
+    public UserResponseDto getUserById(Long id)
+    {
         User user = findActiveUserById(id);
+
         return userMapper.toDto(user);
     }
 
     @Override
-    public UserResponseDto updateUser(Long id, UserUpdateRequestDto updateRequestDto) {
+    public UserResponseDto updateUser(Long id,UserUpdateRequestDto updateRequestDto)
+    {
         User user = findActiveUserById(id);
 
-        if (updateRequestDto.getEmail() != null && !updateRequestDto.getEmail().equals(user.getEmail())) {
-            if (userRepository.existsByEmail(updateRequestDto.getEmail())) {
-                throw new EmailAlreadyExistsException(updateRequestDto.getEmail());
-            }
-            user.setEmail(updateRequestDto.getEmail());
-        }
-        if (updateRequestDto.getName() != null) {
+        updateEmailIfProvided(user, updateRequestDto.getEmail());
+
+        if (updateRequestDto.getName() != null)
+        {
             user.setName(updateRequestDto.getName());
         }
-        if (updateRequestDto.getPassword() != null) {
+
+        if (updateRequestDto.getPassword() != null)
+        {
             user.setHashedPassword(passwordEncoder.encode(updateRequestDto.getPassword()));
         }
 
-        User saved = userRepository.save(user);
-        return userMapper.toDto(saved);
+        User savedUser = userRepository.save(user);
+
+        return userMapper.toDto(savedUser);
     }
 
     @Override
@@ -103,78 +86,64 @@ public class UserServiceImp implements IUserService {
         User user = findActiveUserById(id);
 
         user.setStatus(UserStatus.INACTIVE);
-        user.setDeletedAt(java.time.LocalDateTime.now());
+        user.setDeletedAt(LocalDateTime.now());
+
         userRepository.save(user);
     }
 
-
     @Override
-    public void activateUser(Long id) {
+    public void activateUser(Long id)
+    {
         User user = findActiveUserById(id);
 
         user.setStatus(UserStatus.ACTIVE);
-        user.setDeletedAt(java.time.LocalDateTime.now());
+        user.setDeletedAt(null);
+
         userRepository.save(user);
     }
 
     @Override
-    public void verifyUserEmail(Long userId, String otpCode) {
-        IUserVerificationService.verifyEmailOtp(userId, otpCode);
-    }
-
-    @Override
-    public void resendEmailVerificationOtp(Long userId) {
-        IUserVerificationService.resendEmailVerificationOtp(userId);
-    }
-
-    @Override
-    public UserResponseDto getCurrentUser(Long userId) {
+    public UserResponseDto getCurrentUser(Long userId)
+    {
         User user = findActiveUserById(userId);
+
         return userMapper.toDto(user);
     }
 
     @Override
-    public UserResponseDto getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email " + email));
-
-        if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new ResourceNotFoundException("User not found with email " + email);
-        }
-        return userMapper.toDto(user);
-    }
-
-
-    @Override
-    public UserResponseDto updateCurrentUser(Long userId, UserMeUpdateRequestDto updateDto) {
+    public UserResponseDto updateCurrentUser(Long userId,UserMeUpdateRequestDto updateDto)
+    {
         User user = findActiveUserById(userId);
 
-        if (updateDto.getEmail() != null && !updateDto.getEmail().equals(user.getEmail())) {
-            if (userRepository.existsByEmail(updateDto.getEmail())) {
-                throw new EmailAlreadyExistsException(updateDto.getEmail());
-            }
-            user.setEmail(updateDto.getEmail());
-        }
-        if (updateDto.getName() != null) {
+        updateEmailIfProvided(user, updateDto.getEmail());
+
+        if (updateDto.getName() != null)
+        {
             user.setName(updateDto.getName());
         }
-        if (updateDto.getProfilePicturePath() != null) {
+
+        if (updateDto.getProfilePicturePath() != null)
+        {
             user.setProfilePicturePath(updateDto.getProfilePicturePath());
         }
 
-        User saved = userRepository.save(user);
-        return userMapper.toDto(saved);
+        User savedUser = userRepository.save(user);
+
+        return userMapper.toDto(savedUser);
     }
 
     @Override
-    public void changePassword(Long userId, PasswordChangeRequestDto requestDto) {
+    public void changePassword(Long userId,PasswordChangeRequestDto requestDto)
+    {
         User user = findActiveUserById(userId);
 
-        if (!passwordEncoder.matches(requestDto.getOldPassword(), user.getHashedPassword())) {
+        if (!passwordEncoder.matches(requestDto.getOldPassword(),user.getHashedPassword()))
+        {
             throw new InvalidOperationException("Old password is incorrect");
         }
 
         user.setHashedPassword(passwordEncoder.encode(requestDto.getNewPassword()));
+
         userRepository.save(user);
     }
 
@@ -183,7 +152,12 @@ public class UserServiceImp implements IUserService {
         User user = findActiveUserById(userId);
 
         long totalUrls = urlRepository.countByUser(user);
-        long activeUrls = urlRepository.countByUserAndUrlStatus(user, UrlStatus.ACTIVE);
+
+        long activeUrls = urlRepository.countByUserAndUrlStatus(
+                user,
+                UrlStatus.ACTIVE
+        );
+
         long totalVisits = urlRepository.sumTotalVisitsByUser(user);
 
         return UserUsageResponseDto.builder()
@@ -198,48 +172,94 @@ public class UserServiceImp implements IUserService {
 
     private User findActiveUserById(Long userId) {
         if (userId == null) {
-            throw new InvalidOperationException("User ID is required");
+            throw new InvalidOperationException(
+                    "User ID is required"
+            );
         }
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found with id " + userId
+                        )
+                );
 
         if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new ResourceNotFoundException("User not found with id " + userId);
+            throw new ResourceNotFoundException(
+                    "User not found with id " + userId
+            );
         }
+
         return user;
+    }
+
+    private void updateEmailIfProvided(
+            User user,
+            String newEmail
+    ) {
+        if (newEmail == null || newEmail.equals(user.getEmail())) {
+            return;
+        }
+
+        if (userRepository.existsByEmail(newEmail)) {
+            throw new EmailAlreadyExistsException(newEmail);
+        }
+
+        user.setEmail(newEmail);
     }
 
     // ========== PROFILE PICTURE ENDPOINTS ==========
 
     @Override
-    public String uploadProfilePicture(Long userId, MultipartFile file) {
+    public String uploadProfilePicture(
+            Long userId,
+            MultipartFile file
+    ) {
         User user = findActiveUserById(userId);
-        String imageUrl = imageUploadService.uploadToCloudinary(file, "profile_pictures");
+
+        String imageUrl = imageUploadService.uploadToCloudinary(
+                file,
+                "profile_pictures"
+        );
+
         user.setProfilePicturePath(imageUrl);
         userRepository.save(user);
+
         return imageUrl;
     }
 
     @Override
     public String getProfilePicture(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
-        
-        if (user.getProfilePicturePath() == null || user.getProfilePicturePath().isEmpty()) {
-            throw new ResourceNotFoundException("Profile picture not found for user: " + userId);
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found with id " + userId
+                        )
+                );
+
+        if (user.getProfilePicturePath() == null
+                || user.getProfilePicturePath().isEmpty()) {
+            throw new ResourceNotFoundException(
+                    "Profile picture not found for user: " + userId
+            );
         }
+
         return user.getProfilePicturePath();
     }
 
     @Override
     public void deleteProfilePicture(Long userId) {
         User user = findActiveUserById(userId);
-        
-        if (user.getProfilePicturePath() == null || user.getProfilePicturePath().isEmpty()) {
-            throw new ResourceNotFoundException("Profile picture not found for user: " + userId);
+
+        if (user.getProfilePicturePath() == null
+                || user.getProfilePicturePath().isEmpty()) {
+            throw new ResourceNotFoundException(
+                    "Profile picture not found for user: " + userId
+            );
         }
-        
+
         imageUploadService.deleteFromCloudinary(user.getProfilePicturePath());
+
         user.setProfilePicturePath(null);
         userRepository.save(user);
     }

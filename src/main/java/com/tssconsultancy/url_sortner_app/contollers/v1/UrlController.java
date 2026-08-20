@@ -10,6 +10,7 @@ import com.tssconsultancy.url_sortner_app.enums.PaymentType;
 import com.tssconsultancy.url_sortner_app.security.UserPrincipal;
 import com.tssconsultancy.url_sortner_app.services.implementation.PaymentServiceImpl;
 import com.tssconsultancy.url_sortner_app.services.implementation.UrlServiceImp;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/urls")
@@ -29,7 +29,7 @@ public class UrlController {
     private final PaymentServiceImpl paymentService;
 
     @PostMapping
-    public ResponseEntity<UrlResponseDto> generateShortUrl(@RequestBody UrlRequestDto dto,
+    public ResponseEntity<UrlResponseDto> generateShortUrl(@RequestBody @Valid UrlRequestDto dto,
                                                            @AuthenticationPrincipal UserPrincipal currentUser) {
         Long userId = currentUser.getId();
         UrlResponseDto response = urlService.createShortUrl(dto, userId);
@@ -49,7 +49,7 @@ public class UrlController {
 
     @PostMapping("/custom")
     public ResponseEntity<PaymentResponseDto> createCustomUrl(
-            @RequestBody CustomUrlRequestDto dto,
+            @RequestBody @Valid CustomUrlRequestDto dto,
             @AuthenticationPrincipal UserPrincipal currentUser) {
 
         Long userId = currentUser.getId();

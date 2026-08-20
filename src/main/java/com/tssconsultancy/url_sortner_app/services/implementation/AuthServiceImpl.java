@@ -1,5 +1,6 @@
 package com.tssconsultancy.url_sortner_app.services.implementation;
 
+import com.tssconsultancy.url_sortner_app.constants.SystemConfigConstants;
 import com.tssconsultancy.url_sortner_app.dtos.auth.*;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserResponseDto;
@@ -16,7 +17,6 @@ import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
 import com.tssconsultancy.url_sortner_app.security.JwtTokenProvider;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IAuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,16 +47,14 @@ public class AuthServiceImpl implements IAuthService {
         );
         user.setRole(UserTypes.USER);
         user.setStatus(UserStatus.ACTIVE);
-        user.setRemainingUrlSlots(100);
+        user.setRemainingUrlSlots(SystemConfigConstants.FALLBACK_FREE_URL_QUOTA_PER_USER);
         user.setVerified(false);
 
         User savedUser = userRepository.save(user);
 
         notificationProcessor.getProcessor("email").sendOtp(savedUser.getEmail());
-        String generatedToken = jwtTokenProvider.generateToken(user);
 
         return LoginResponseDto.builder()
-                .token(generatedToken)
                 .userId(user.getUserId())
                 .name(user.getName())
                 .email(user.getEmail())
