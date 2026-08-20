@@ -5,7 +5,6 @@ import com.tssconsultancy.url_sortner_app.dtos.payment.PaymentResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.CustomUrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.urls.UrlResponseDto;
-import com.tssconsultancy.url_sortner_app.dtos.urls.UrlUpdateRequestDto;
 import com.tssconsultancy.url_sortner_app.enums.PaymentType;
 import com.tssconsultancy.url_sortner_app.security.UserPrincipal;
 import com.tssconsultancy.url_sortner_app.services.implementation.PaymentServiceImpl;
@@ -66,7 +65,6 @@ public class UrlController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "5") Integer size,
             @AuthenticationPrincipal UserPrincipal currentUser) {
-        System.out.println("hi");
         Long userId = currentUser.getId();
         Pageable pageable = PageRequest.of(page, size);
         PageResponse<UrlResponseDto> urls = urlService.getAllUrlByUserId(userId, pageable);
@@ -80,17 +78,6 @@ public class UrlController {
         Long userId = currentUser.getId();
 
         UrlResponseDto response = urlService.getUrlByIdAndUserId(urlId, userId);
-        return ResponseEntity.ok(response);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<UrlResponseDto> updateUrl(
-            @PathVariable("id") Long urlId,
-            @RequestBody UrlUpdateRequestDto dto,
-            @AuthenticationPrincipal UserPrincipal currentUser) {
-        Long userId = currentUser.getId();
-
-        UrlResponseDto response = urlService.updateUrl(urlId, userId, dto);
         return ResponseEntity.ok(response);
     }
 

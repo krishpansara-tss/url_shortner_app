@@ -11,7 +11,7 @@ import com.tssconsultancy.url_sortner_app.enums.UserTypes;
 import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
 import com.tssconsultancy.url_sortner_app.exceptions.base.ResourceNotFoundException;
 import com.tssconsultancy.url_sortner_app.exceptions.derived.EmailAlreadyExistsException;
-import com.tssconsultancy.url_sortner_app.mappers.UserMapper;
+import com.tssconsultancy.url_sortner_app.mapper.UserMapper;
 import com.tssconsultancy.url_sortner_app.repositories.TokenBlacklistRepository;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
 import com.tssconsultancy.url_sortner_app.security.JwtTokenProvider;
@@ -30,6 +30,7 @@ public class AuthServiceImpl implements IAuthService {
     private final UserRepository userRepository;
     private final TokenBlacklistRepository tokenBlacklistRepository;
     private final UserMapper userMapper;
+    private final SystemConfigServiceImpl systemConfigService;
     private final NotificationProcessor notificationProcessor;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
@@ -40,6 +41,8 @@ public class AuthServiceImpl implements IAuthService {
             throw new EmailAlreadyExistsException(requestDto.getEmail());
         }
 
+        int freeUrlQuota = systemConfigService.getIntConfig(SystemConfigConstants.FREE_URL_QUOTA_PER_USER, SystemConfigConstants.FALLBACK_FREE_URL_QUOTA_PER_USER);
+
         User user = new User(
                 requestDto.getName(),
                 requestDto.getEmail(),
@@ -47,7 +50,7 @@ public class AuthServiceImpl implements IAuthService {
         );
         user.setRole(UserTypes.USER);
         user.setStatus(UserStatus.ACTIVE);
-        user.setRemainingUrlSlots(SystemConfigConstants.FALLBACK_FREE_URL_QUOTA_PER_USER);
+        user.setRemainingUrlSlots(freeUrlQuota);
         user.setVerified(false);
 
         User savedUser = userRepository.save(user);

@@ -25,8 +25,6 @@ public class EmailNotifier implements INotificationService {
         mailMessage.setText(message);
 
         mailSender.send(mailMessage);
-
-        System.out.println("Receiver : " + to + " | Message (Sent ON Email) : " + message);
     }
 
     @Override
@@ -48,7 +46,6 @@ public class EmailNotifier implements INotificationService {
         if(!otpObject.getVerificationCode().equals(otp)){
             throw new RuntimeException("OTP didn't matched");
         }else{
-            System.out.println("OTP MATCHED");
             otpObject.setUsed(true);
             otpRepository.save(otpObject);
         }

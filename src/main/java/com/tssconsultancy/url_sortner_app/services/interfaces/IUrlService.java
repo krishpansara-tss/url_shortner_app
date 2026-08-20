@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 public interface IUrlService {
     UrlResponseDto createShortUrl(UrlRequestDto dto, Long userId);
     UrlResponseDto getUrlByIdAndUserId(Long urlId, Long userId);
-    UrlResponseDto updateUrl(Long urlId, Long userId, UrlUpdateRequestDto dto);
+//    UrlResponseDto updateUrl(Long urlId, Long userId, UrlUpdateRequestDto dto);
     UrlResponseDto createCustomUrl(CustomUrlRequestDto dto, Long userId);
     PageResponse<UrlResponseDto> getAllUrlByUserId(Long userId, Pageable pageable);
 

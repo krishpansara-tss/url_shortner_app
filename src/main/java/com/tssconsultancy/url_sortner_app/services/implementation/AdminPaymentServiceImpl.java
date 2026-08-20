@@ -61,13 +61,21 @@ public class AdminPaymentServiceImpl implements IAdminPaymentService {
         List<Payment> allPayments = paymentRepository.findAll();
 
         long totalPayments = allPayments.size();
-        long successCount = paymentRepository.countByPaymentStatus(PaymentStatus.SUCCESS);
-        long pendingCount = paymentRepository.countByPaymentStatus(PaymentStatus.PENDING);
-        long cancelledCount = paymentRepository.countByPaymentStatus(PaymentStatus.CANCELLED);
-        long failedCount = paymentRepository.countByPaymentStatus(PaymentStatus.FAILED);
+        long successCount = allPayments.stream()
+                .filter(payment -> payment.getPaymentStatus() == PaymentStatus.SUCCESS)
+                .count();
+        long pendingCount = allPayments.stream()
+                .filter(payment -> payment.getPaymentStatus() == PaymentStatus.PENDING)
+                .count();
+        long cancelledCount = allPayments.stream()
+                .filter(payment -> payment.getPaymentStatus() == PaymentStatus.CANCELLED)
+                .count();
+        long failedCount = allPayments.stream()
+                .filter(payment -> payment.getPaymentStatus() == PaymentStatus.FAILED)
+                .count();
 
         double totalRevenue = allPayments.stream()
-                .filter(p -> p.getPaymentStatus() == PaymentStatus.SUCCESS && p.getAmount() != null)
+                .filter(payment -> payment.getPaymentStatus() == PaymentStatus.SUCCESS && payment.getAmount() != null)
                 .mapToDouble(Payment::getAmount)
                 .sum();
 

@@ -11,7 +11,7 @@ import com.tssconsultancy.url_sortner_app.enums.UserStatus;
 import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
 import com.tssconsultancy.url_sortner_app.exceptions.base.ResourceNotFoundException;
 import com.tssconsultancy.url_sortner_app.exceptions.derived.EmailAlreadyExistsException;
-import com.tssconsultancy.url_sortner_app.mappers.UserMapper;
+import com.tssconsultancy.url_sortner_app.mapper.UserMapper;
 import com.tssconsultancy.url_sortner_app.repositories.UrlRepository;
 import com.tssconsultancy.url_sortner_app.repositories.UserRepository;
 import com.tssconsultancy.url_sortner_app.services.ImageUploadService;
@@ -97,7 +97,6 @@ public class UserServiceImp implements IUserService {
         User user = findActiveUserById(id);
 
         user.setStatus(UserStatus.ACTIVE);
-        user.setDeletedAt(null);
 
         userRepository.save(user);
     }

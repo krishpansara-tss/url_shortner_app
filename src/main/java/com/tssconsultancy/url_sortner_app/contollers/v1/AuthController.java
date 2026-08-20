@@ -8,6 +8,7 @@ import com.tssconsultancy.url_sortner_app.dtos.auth.ResetPasswordRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.auth.VerifyEmailRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.MessageResponseDto;
 import com.tssconsultancy.url_sortner_app.dtos.users.UserRequestDto;
+import com.tssconsultancy.url_sortner_app.exceptions.base.InvalidOperationException;
 import com.tssconsultancy.url_sortner_app.security.UserPrincipal;
 import com.tssconsultancy.url_sortner_app.services.interfaces.IAuthService;
 import jakarta.validation.Valid;
@@ -70,7 +71,14 @@ public class AuthController {
     public ResponseEntity<MessageResponseDto> logout(@AuthenticationPrincipal UserPrincipal currentUser,
             @RequestHeader(value = "Authorization",required = false) String token)
     {
-        Long userId = currentUser != null ? currentUser.getId() : null;
+        if (currentUser == null) {
+            throw new InvalidOperationException("User is not authenticated.");
+        }
+        if (token == null || token.isBlank()) {
+            throw new InvalidOperationException("Authorization token is missing.");
+        }
+
+        Long userId = currentUser.getId();
 
         authService.logout(userId, token);
 
