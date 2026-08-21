@@ -80,6 +80,7 @@ public class AuthController {
 
         Long userId = currentUser.getId();
 
+
         authService.logout(userId, token);
 
         return ResponseEntity.ok(

@@ -3,6 +3,7 @@ package com.tssconsultancy.url_sortner_app.contollers.v1;
 import com.tssconsultancy.url_sortner_app.dtos.PageResponse;
 import com.tssconsultancy.url_sortner_app.dtos.payment.PaymentRequestDto;
 import com.tssconsultancy.url_sortner_app.dtos.payment.PaymentResponseDto;
+import com.tssconsultancy.url_sortner_app.entities.User;
 import com.tssconsultancy.url_sortner_app.security.UserPrincipal;
 import com.tssconsultancy.url_sortner_app.services.implementation.PaymentServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -30,10 +31,11 @@ public class PaymentController {
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<PaymentResponseDto>> getUserPayments( @RequestParam(defaultValue = "0") Integer page,
-                                                                                @RequestParam(defaultValue = "5") Integer size,
-                                                                                @RequestParam Long userId)
+    public ResponseEntity<PageResponse<PaymentResponseDto>> getUserPayments(@RequestParam(defaultValue = "0") Integer page,
+                                                                            @RequestParam(defaultValue = "5") Integer size,
+                                                                            @AuthenticationPrincipal UserPrincipal currentUser)
     {
+        Long userId = currentUser.getId();
         Pageable pageable = PageRequest.of(page, size);
         PageResponse<PaymentResponseDto> payments = paymentService.getUserPayments(userId, pageable);
         return ResponseEntity.ok(payments);
@@ -41,7 +43,9 @@ public class PaymentController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PaymentResponseDto> getPaymentById(@PathVariable("id") Long paymentId,
-                                                             @RequestParam Long userId) {
+                                                             @AuthenticationPrincipal UserPrincipal currentUser)
+    {
+        Long userId = currentUser.getId();
         PaymentResponseDto payment = paymentService.getPaymentById(paymentId, userId);
         return ResponseEntity.ok(payment);
     }

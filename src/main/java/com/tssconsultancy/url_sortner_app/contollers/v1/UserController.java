@@ -72,9 +72,10 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{id}/profile-picture")
-    public ResponseEntity<Map<String, String>> getProfilePicture(@PathVariable Long id) {
-        String imageUrl = userService.getProfilePicture(id);
+    @GetMapping("/profile-picture")
+    public ResponseEntity<Map<String, String>> getProfilePicture(@AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
+        String imageUrl = userService.getProfilePicture(userId);
         
         Map<String, String> response = new HashMap<>();
         response.put("imageUrl", imageUrl);
