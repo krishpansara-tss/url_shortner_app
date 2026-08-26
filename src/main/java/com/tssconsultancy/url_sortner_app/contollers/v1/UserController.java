@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.HashMap;
 import java.util.Map;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
